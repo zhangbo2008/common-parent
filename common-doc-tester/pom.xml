@@ -18,9 +18,10 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>${project.parent.groupId}</groupId>
+			<groupId>com.uetty.common</groupId>
 			<artifactId>common-tool</artifactId>
-			<version>${project.parent.version}</version>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 	
