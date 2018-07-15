@@ -12,8 +12,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.zip.ZipException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itextpdf.text.DocumentException;
 import com.uetty.common.tool.core.DocTool;
+import com.uetty.common.tool.core.FileTool;
 
 import freemarker.template.TemplateException;
 
@@ -27,12 +28,17 @@ public class TestCreateDocx {
 		return value;
 	}
 
-	public static void main(String[] args) throws ZipException, IOException, TemplateException {
-		URL tempFolderUrl = Thread.currentThread().getContextClassLoader().getResource("docx/template");
-		String path = tempFolderUrl.getPath();
+	public static void main(String[] args) throws ZipException, IOException, TemplateException, DocumentException {
+		URL resource = TestCreateDocx.class.getResource("/");
+        if (resource == null) {
+        	resource = TestCreateDocx.class.getClass().getProtectionDomain().getCodeSource().getLocation();
+        }
+        
+		String path = resource.getPath();
 		if (!path.endsWith(File.separator)) {
 			path += File.separator;
 		}
+		path += "docx" + File.separator + "template" + File.separator;
 		String docxPath = path + "exportProjectAudit.docx";
 		String docXmlPath = path + "exportProjectAudit.ftl";
 		String headXmlPath = path + "exportProjectAuditHead.ftl";
@@ -84,7 +90,8 @@ public class TestCreateDocx {
 		ftlFileMap.put("word/document.xml", new File(docXmlPath));
 		ftlFileMap.put("word/header1.xml", new File(headXmlPath));
 		
-		System.out.println(new ObjectMapper().writeValueAsString(ftlFileMap));
-		DocTool.createDocx(new File(docxPath), ftlFileMap, dataMap);
+		File createDocx = DocTool.createDocx(new File(docxPath), ftlFileMap, dataMap);
+		
+		DocTool.docxConvertToPdf(createDocx, new File(FileTool.randomFilePathByExtName("pdf")));
 	}
 }

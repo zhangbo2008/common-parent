@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.UUID;
 
 import com.uetty.common.tool.constant.Global;
@@ -85,5 +86,15 @@ public class FileTool {
 			e.printStackTrace();
 		}
 		return isWinOS;
+	}
+	
+	public static InputStream openFileInJar(String jarPath, String filePath) throws IOException {
+		if (!filePath.startsWith(File.separator)) {
+			filePath = File.separator + filePath;
+		}
+		String urlPath = "jar:file:" + jarPath + "!" + filePath;
+		URL url = new URL(urlPath);
+		InputStream stream = url.openStream();
+		return stream;
 	}
 }

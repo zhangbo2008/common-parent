@@ -1,13 +1,11 @@
 package com.uetty.common.tool.core;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 import freemarker.core.ParseException;
 import freemarker.template.Configuration;
@@ -55,5 +53,5 @@ public class FreemarkerEngine {
 		cfg.setWrapUncheckedExceptions(true);
 		cfg.setDirectoryForTemplateLoading(tempFileFolder);
 		return cfg;
-	}		
+	}
 }

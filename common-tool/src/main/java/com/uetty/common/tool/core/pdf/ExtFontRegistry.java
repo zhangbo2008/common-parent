@@ -1,53 +1,18 @@
 package com.uetty.common.tool.core.pdf;
 
-import java.awt.Color;
-
-import com.lowagie.text.ExceptionConverter;
-import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
+import com.itextpdf.text.FontFactory;
 
 import fr.opensagres.xdocreport.itext.extension.font.AbstractFontRegistry;
 
 public class ExtFontRegistry extends AbstractFontRegistry {
-	
+
 	public static ExtFontFactoryImpl extFontFactoryImp = new ExtFontFactoryImpl();
 	private static final ExtFontRegistry INSTANCE = new ExtFontRegistry();
-	private static boolean fontRegistryInitialized = false;
 	
 	private ExtFontRegistry() {
 		FontFactory.setFontImp(extFontFactoryImp);
 	}
-	
-	private void initFontRegistryIfNeeded()
-    {
-        if ( !fontRegistryInitialized )
-        {
-            // clear built-in fonts which may clash with document fonts
-            ExtendedBaseFont.clearBuiltinFonts();
-            // register fonts from files (ex : for windows, load files from C:\WINDOWS\Fonts)
-            FontFactory.registerDirectories();
-            extFontFactoryImp.registerDirectories();
-            fontRegistryInitialized = true;
-        }
-    }
-	
-	@Override
-	public Font getFont(String familyName, String encoding, float size, int style, Color color) {
-		initFontRegistryIfNeeded();
-        if ( familyName != null )
-        {
-            familyName = resolveFamilyName( familyName, style );
-        }
-        try
-        {
-            return extFontFactoryImp.getFont( familyName, encoding, size, style, color );
-        }
-        catch ( ExceptionConverter e )
-        {
-            return new Font( Font.UNDEFINED, size, style, color );
-        }
-	}
-	
+
 	@Override
 	protected String resolveFamilyName(String familyName, int style) {
 		if ("宋体".equals(familyName) || "SimSun".equals(familyName)) {
@@ -58,8 +23,8 @@ public class ExtFontRegistry extends AbstractFontRegistry {
 		}
 		return "microsoft yahei";
 	}
-	
+
 	public static ExtFontRegistry getRegistry() {
-       return INSTANCE;
-   }
+		return INSTANCE;
+	}
 }

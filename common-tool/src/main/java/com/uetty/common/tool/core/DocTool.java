@@ -27,6 +27,12 @@ import org.apache.poi.xwpf.converter.pdf.PdfConverter;
 import org.apache.poi.xwpf.converter.pdf.PdfOptions;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.uetty.common.tool.core.pdf.ExtFontRegistry;
 
 import freemarker.template.TemplateException;
@@ -63,13 +69,12 @@ public class DocTool {
 				entryFileMap.put(key, entryFile);
 			}
 		
-			// 将临时文件替换到docx文件下相应路径
 			outFile = new File(FileTool.randomFilePathByExtName("docx"));			
 			
 			zipFile = new ZipFile(docxFile);
 			zipout = new ZipOutputStream(new FileOutputStream(outFile));
 			
-
+			// 将临时文件替换到docx文件下相应路径
 			Enumeration<? extends ZipEntry> zipEntrys = zipFile.entries();
 			while (zipEntrys.hasMoreElements()) {
 				ZipEntry next = zipEntrys.nextElement();
@@ -148,4 +153,43 @@ public class DocTool {
 		fos.close();
 	}
 	
+	
+	/**
+     * pdf插入水印
+     */
+    public static void insertWaterImage(PdfWriter writer, String inPdfPath, String outPdfPath, String imageLocalAddr) throws IOException, DocumentException {
+        PdfReader reader = null;
+        PdfStamper stamp = null;
+        
+        try {
+		    reader = new PdfReader(inPdfPath);
+		    //假如PDF有4页，endPDFPage值为5
+		    int endPdfPage = reader.getNumberOfPages() + 1;
+		    
+		    File outParentFile = new File(outPdfPath).getParentFile();
+		    if (!outParentFile.exists()) {
+		    	outParentFile.mkdirs();
+		    }
+		    stamp = new PdfStamper(reader, new FileOutputStream(new File(outPdfPath)));
+		    for (int i = 1; i < endPdfPage; i++) {
+		        PdfContentByte under = stamp.getUnderContent(i);
+		        //插入另一组水印
+		        Image img = Image.getInstance(imageLocalAddr);
+		        //设置图片缩放比例
+		        img.scalePercent(78);
+		        //设置图片绝对宽度
+		        img.scaleAbsoluteWidth(596);
+		        //设置图片绝对位置
+		        img.setAbsolutePosition(0, 0);
+		        under.addImage(img);
+		    }
+        } finally {
+        	if (stamp != null) {
+        		stamp.close();
+        	}
+        	if (reader != null) {
+        		reader.close();
+        	}
+        }
+    }
 }
