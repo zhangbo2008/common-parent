@@ -43,74 +43,48 @@ M： 里程碑版 - 该版小版本号变迁，下一版本中版本号变迁 - 
 |2      |                   |o                  |                   |                   |
 |3      |                   |o                  |                   |                   |
 |4      |                   |o                  |                   |                   |
-
 |5      |                   |o，# a模块开发完成    |c(dev)，# 发布到测试服务器 |<span style="background-color: #bfbfbf;">tag(V1.0.0.1-beta)，测试版</span>|
-
 |6      |                   |o，# 继续开始b模块的开发|       |     |
 |7      |                   |o| | |
 |8      |                   |                   |o，# 修改测试出的bug(下面没特殊说明的相同)| |
 |9 | | |o | |
 |10 | |o | | |
-
 |11 | | |o，# 测试版bug基本排除的差不多了 |<span style="background-color: #92d050;">tag(V1.0.0.3-RC1)，# 观察版1，感觉可以发布了，但还是先观察下</span>|
-
 |12 | |o | | |
-
 |13 | | |o，# 发现了个bug，并解决了 |<span style="background-color: #92d050;">tag(V1.0.0.3-RC1-SR1)，# 观察版1的第一次修复</span>|
-
 |14 | |o | | |
-
 |15 | | |o，# 又发现了个bug，并解决了 |<span style="background-color: #92d050;">tag(V1.0.0.3-RC1-SR2)，tag(V1.0.0.4-RC2)，# SR2观察版1的第二次修复，RC2观察版2</span>|
-
 |16 | | |# 模块a真的没测出bug了 |<span style="background-color: #ff0;">tag(V1.0.0.5-M)，# 里程碑版</span>|
-
 |17 | |o | | |
 |18 | |m(feature)，# feature分支模块a修复完没bug了，合并一下吧 | | |
 |19 | |o，# 提交合并的代码 | | |
 |20 | |o | | |
-
 |21 | |o，# 模块b也开发好了 |c(dev)，# 将模块b连同之前的模块a发布到测试服务器 |<span style="background-color: #bfbfbf;">tag(V1.0.1.1-beta)，# 测试版</span>|
-
 |22 | |o，# 继续c模块开发 | | |
 |23 | | |o | |
-
 |24 | | |o，# 测试版bug基本排除的差不多了 |<span style="background-color: #92d050;">tag(V1.0.1.5-RC1)，# 观察版1</span>|
-
 |25 | |o | | |
 |26 | |o | | |
 |27 |m(feature)，# 合并feature分支的代码，要发布一版 | |# 测试发现还真没 什么bug了 | |
-
 |28 |o，# 提交合并的模块ab的代码 | | |<span style="background-color: #00b0f0;">tag(V1.0.1.10)，# 正式服务器发布版本</span>|
-
 |29 | |m(feature)，# feature分支模块b修复完没bug了，合并一下吧 | | |
 |30 | |o，# 提交合并的模块b的代码 | | |
 |31 | |o | | |
 |32 | |o | | |
-
 |33 | |o，# 模块c也开发完了 |c(dev)，# 模块c测试 |<span style="background-color: #bfbfbf;">tag(V1.0.2.1-beta)，# 测试版</span>|
-
 |34 | | |o | |
 |35 | | |o | |
 |36 | |o，# 继续模块d开发 | | |
-
 |37 | | |o |<span style="background-color: #92d050;">tag(V1.0.2.4-RC1)</span>|
-
 |38 | | |o |<span style="background-color: #92d050;">tag(V1.0.2.4-RC1-SR1)</span>|
-
 |39 | | |# 模块c的bug解决完了 |<span style="background-color: #ff0;">tag(V1.0.2.6-M)</span>|
-
 |40 | |m(feature)，# 合并模块c测试修复代码 | | |
 |41 | |o，# 提交合并代码 | | |
 |42 | |o | | |
-
 |43 | |o |c(dev)，# 提交测试 |<span style="background-color: #bfbfbf;">tag(V1.0.3.1-beta)，# 测试版</span>|
-
 |44 | | |o | |
-
 |45 | | |o |<span style="background-color: #92d050;">tag(V1.0.3.4-RC1)</span>|
-
 |46 | | |o |<span style="background-color: #92d050;">tag(V1.0.3.4-RC1-SR1)</span>|
-
 |47 |m(feature) | |# 模块cd的bug解决完了 | |
 |48 |o，# 提交合并的模块cd的代码 | | |tag(V1.0.3.8)，# 正式服务器发布版本|
 |49 | |o，# 继续模块e开发 | | |
@@ -118,14 +92,9 @@ M： 里程碑版 - 该版小版本号变迁，下一版本中版本号变迁 - 
 |51 | |o，# 提交合并代码 | | |
 |52 | |o | | |
 |53 | |o | | |
-
 |54 | |o，# 模块e开发完毕 |c(dev)，# 提交测试 |<span style="background-color: #bfbfbf;">tag(V1.0.4.1-beta)，# 测试版</span>|
-
 |55 | | |o |<span style="background-color: #92d050;">tag(V1.0.4.6-RC1)</span>|
-
 |56 |m(feature) | |# 测试完成 | |
-
 |57 |o，# 提交合并 | | |<span style="background-color: #00b0f0;">tag(V1.0.4.12)，# 正式服务器发布</span>|
-
 |58 | |m(feature) | | |
 |59 | |o，# 提交合并 | | |
