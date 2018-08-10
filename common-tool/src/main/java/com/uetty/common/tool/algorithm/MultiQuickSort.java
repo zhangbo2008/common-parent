@@ -109,7 +109,7 @@ public class MultiQuickSort<T extends Comparable<T>> {
 			// 左右子区间分别递归
 			boolean newThread = false;
 			
-			if ((sz / 4 / threadSize > threadListSize) && ls > threadListSize && rs > threadListSize) {
+			if ((sz / 2.5 / threadSize / threadSize > threadListSize) && ls > threadListSize && rs > threadListSize) {
 				// 如果左右区间的数据量均较大
 				threadSize++;
 				newThread = true;

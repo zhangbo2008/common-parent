@@ -124,7 +124,7 @@ public class SortTool {
 	
 	public static void main(String[] args) throws InterruptedException {
 		List<Integer> list = new ArrayList<>();
-		for (int i = 0; i < 30000000; i++) {
+		for (int i = 0; i < 20000000; i++) {
 			list.add((int)(Math.random() * 1000000));
 		}
 		System.out.println("sort start");
