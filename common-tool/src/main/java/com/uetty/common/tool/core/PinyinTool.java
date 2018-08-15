@@ -17,6 +17,9 @@ public class PinyinTool {
 	private static final int HANYU_START = Integer.valueOf("4E00", 16);
 	private static final int HANYU_END = Integer.valueOf("9FA5", 16);
 	
+	/**
+	 * 汉字转为小写拼音
+	 */
 	public static String toPinyinString(String str) {
 		HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
 		format.setCaseType(HanyuPinyinCaseType.LOWERCASE);
@@ -39,6 +42,9 @@ public class PinyinTool {
 		return sb.toString();
 	}
 	
+	/**
+	 * 汉字转为大写拼音首字母
+	 */
 	public static String toPinyinAbbreviation(String name) {
 		HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
 		format.setCaseType(HanyuPinyinCaseType.UPPERCASE);
