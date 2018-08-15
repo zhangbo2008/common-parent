@@ -2,9 +2,8 @@ package com.uetty.common.tool.core;
 
 /**
  * 汉字拼音缩写工具
- * 
+ * 利用GB2312按拼音顺序编码的特点实现
  * @author vince
- *
  */
 public class PinYinAbbreviation {
 	// 简体中文的编码范围从B0A1（45217）一直到F7FE（63486）
