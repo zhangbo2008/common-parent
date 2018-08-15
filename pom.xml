@@ -53,6 +53,11 @@
 			<version>1.2</version>
 		</dependency>
 		<dependency>
+		    <groupId>commons-beanutils</groupId>
+		    <artifactId>commons-beanutils</artifactId>
+		    <version>1.9.3</version>
+		</dependency>
+		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
 			<version>${logback.version}</version>
@@ -86,6 +91,14 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<!-- jackson end -->
+		
+		<dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>3.0-alpha-1</version>
+            <scope>provided</scope>
+        </dependency>
+		
 	</dependencies>
 
 	<modules>
