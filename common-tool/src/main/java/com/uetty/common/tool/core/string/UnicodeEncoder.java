@@ -1,7 +1,18 @@
 package com.uetty.common.tool.core.string;
 
+/**
+ * unicode编码工具
+ * @author vince
+ */
 public class UnicodeEncoder {
 
+	/**
+	 * 带中文的字符串转unicode
+	 * <p>
+	 * <blockquote>
+	 * 通用 ==> \u901a\u7528
+	 * </blockquote>
+	 */
 	public static String encode(String str) {
 		StringBuilder sb = new StringBuilder();
 		char[] charArray = str.toCharArray();
