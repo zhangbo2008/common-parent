@@ -18,9 +18,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author caihua
  */
-public class ExcelReader {
+public class XlsReader {
 	
-	Logger logger = LoggerFactory.getLogger(ExcelReader.class);
+	Logger logger = LoggerFactory.getLogger(XlsReader.class);
 	
 	private HSSFWorkbook wb = null;// book [includes sheet]
 
@@ -36,10 +36,10 @@ public class ExcelReader {
 
 	private File file = null;
 
-	public ExcelReader() {
+	public XlsReader() {
 	}
 
-	public ExcelReader(File file) {
+	public XlsReader(File file) {
 		this.file = file;
 	}
 
@@ -205,7 +205,7 @@ public class ExcelReader {
 	
 	public static List<Object[]> getList(File file,int startRow,int readClm) throws IOException{
 		List<Object[]> list=new ArrayList<Object[]>();
-		ExcelReader readExcel = new ExcelReader(file);
+		XlsReader readExcel = new XlsReader(file);
 		readExcel.open();
 		readExcel.setSheetNum(0); // 设置读取索引为0的工作表
 		// 总行数
@@ -228,7 +228,7 @@ public class ExcelReader {
 
 	public static void main(String args[]) {
 		File file = new File("D:\\template.xls");
-		ExcelReader readExcel = new ExcelReader(file);
+		XlsReader readExcel = new XlsReader(file);
 		try {
 			readExcel.open();
 		} catch (IOException e) {
