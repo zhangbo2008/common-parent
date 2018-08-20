@@ -1,12 +1,27 @@
-package com.uetty.common.tool.core;
+package com.uetty.common.tool.core.proxy;
 
 import java.lang.reflect.Method;
 
+//import org.springframework.cglib.proxy.Dispatcher;
 import org.springframework.cglib.proxy.Enhancer;
+//import org.springframework.cglib.proxy.FixedValue;
+//import org.springframework.cglib.proxy.InvocationHandler;
+//import org.springframework.cglib.proxy.LazyLoader;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
+//import org.springframework.cglib.proxy.NoOp;
+//import org.springframework.cglib.proxy.ProxyRefDispatcher;
 
-public class SimpleProxy implements MethodInterceptor {
+public class CglibProxy implements MethodInterceptor {
+	
+	// 回调可以选择这几个接口
+//	NoOp
+//	MethodInterceptor
+//	InvocationHandler
+//	LazyLoader
+//	Dispatcher
+//	FixedValue
+//	ProxyRefDispatcher
 	
 	@SuppressWarnings("unchecked")
 	public <T> T getObjectInstance(T t){
