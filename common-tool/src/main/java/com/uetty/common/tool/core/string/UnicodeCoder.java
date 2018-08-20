@@ -61,9 +61,9 @@ public class UnicodeCoder {
 		}
 		String hex = Integer.toHexString(c);
 		if (c >= 0x1000) {
-			return "\\u0" + hex;
-		} else {
 			return "\\u" + hex;
+		} else {
+			return "\\u0" + hex;
 		}
 	}
 	

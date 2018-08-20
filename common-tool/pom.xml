@@ -19,6 +19,7 @@
 		<org.apache.poi.version>3.12</org.apache.poi.version>
 		<itextpdf.itextpdf.version>5.5.13</itextpdf.itextpdf.version>
 		<pinyin4j.version>2.5.0</pinyin4j.version>
+		<spring.version>4.3.7.RELEASE</spring.version>
 	</properties>
 	
 	<dependencies>
@@ -86,6 +87,19 @@
 			<artifactId>pinyin4j</artifactId>
 			<version>${pinyin4j.version}</version>
 		</dependency>
+		
+		<!-- 代理 -->
+		<dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>${spring.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 	</dependencies>
 	
 	<build>
