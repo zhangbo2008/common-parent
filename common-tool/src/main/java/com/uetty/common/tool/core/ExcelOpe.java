@@ -48,6 +48,9 @@ public class ExcelOpe {
     
     private DateFormat readDateFormat = null;
 
+    /**
+     * 仅xls格式成功过
+     */
     public ExcelOpe(InputStream is) {
         POIFSFileSystem fs;
         try {
