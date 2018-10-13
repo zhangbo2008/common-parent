@@ -2,6 +2,8 @@
  * 图片浏览插件
  */
 function VieViewer(src, div, width, height) {
+	var thisViewer = this;
+	
 	this.rawSrc = src;
 	this.view = $(div);
 	this.rate = 1.2;
@@ -102,17 +104,32 @@ function VieViewer(src, div, width, height) {
 			_this.rotate(90);
 		});
 	}
-	this.bindWheelScroll = function() {
-		var _this = this;
-		this.canvas.unbind('mousewheel').on('mousewheel', function(event, delta) {
-			var oriEvent = event.originalEvent;
-		    if (oriEvent.deltaY > 0) {
-		    	_this.zoomOut();
-		    } else if (oriEvent.deltaY < 0) {
-		    	_this.zoomIn();
-		    }
-		});
+
+	// 鼠标滚动事件（兼容谷歌和火狐）
+	this.onmousewheel = function(event){
+		var delta = 0;
+		if (event.wheelDelta != null && event.wheelDelta != undefined) {// 谷歌
+			delta = event.wheelDelta / 120;
+		} else {// 火狐
+			delta = event.detail / -3;
+		}
+		if (delta < 0) {// 向下滚，缩小
+			thisViewer.zoomOut();
+		} else if (delta > 0) {// 向上滚，放大
+			thisViewer.zoomIn();
+		}
 	}
+	// 鼠标滚动事件（兼容谷歌和火狐）
+	this.bindWheelScroll = function() {
+		if (this.canvas.get(0).onmousewheel === undefined) {// 火狐
+			this.canvas.get(0).removeEventListener('DOMMouseScroll', this.onmousewheel);
+			this.canvas.get(0).addEventListener('DOMMouseScroll', this.onmousewheel);
+		} else { // 谷歌
+			this.canvas.get(0).removeEventListener('mousewheel', this.onmousewheel);
+			this.canvas.get(0).addEventListener('mousewheel', this.onmousewheel);
+		}
+	}
+	
 	this.bindMoveEvent = function() {
 		var _this = this;
 		this.canvas.unbind('mousedown').on('mousedown', function(downEvent){
