@@ -23,9 +23,9 @@
 			xmlhttp=new XMLHttpRequest();
 			// http://127.0.0.1:9080/self/require/atta/download?file_id=2001
 			xmlhttp.open("GET","http://127.0.0.1:9080/self/require/atta/download?file_id=2001",true);
-// 			xmlhttp.open("GET","http://127.0.0.1:9080/self/plugins/zxtracker/static/image/tree_open.png",true);
 			xmlhttp.responseType = "blob";
-// 			xmlhttp.setRequestHeader("client_type", "DESKTOP_WEB");
+ 			//xmlhttp.setRequestHeader("client_type", "DESKTOP_WEB");
+
 			xmlhttp.onload = function(){
 				    console.log(this);
 				    if (this.status == 200) {
