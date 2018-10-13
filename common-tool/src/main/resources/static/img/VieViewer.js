@@ -14,7 +14,6 @@ function VieViewer(src, div, width, height) {
 	this.angle = 0;
 	this.xFlip = false;
 	this.yFlip = false;
-	this.scale = 1;
 	
 	if (!this.view && this.view.length == 0) {
 		this.view = $('<div></div>');
@@ -227,7 +226,7 @@ function VieViewer(src, div, width, height) {
 		var wrapHeight = this.wrapper.height();
 		var wrapWidth = this.wrapper.width();
 		
-		this.scale = Math.min(wrapHeight, wrapWidth) / length;;
+		this.scale = Math.min(wrapHeight, wrapWidth) / imageLength;;
 		
 		var maxlimit = this.maxScale;
 		var minlimit = this.minScale;
@@ -251,17 +250,24 @@ function VieViewer(src, div, width, height) {
 			this.minScale = this.maxScale / Math.pow(this.rate, 8);
 		}
 	}
-	this.loadSquareImage = function(onsuccess) {
+	this.getSquareImageLength = function(width, height) {
+//		return Math.ceil(Math.sqrt(width * width + height * height));
+		return Math.max(width, height);
+	}
+	this.loadSquareImage = function(onsuccess, img=null) {
 		var viewer = this;
-		var img = new Image();
+		if (!img) {
+			img = new Image();
+		}
+		img.setAttribute('crossOrigin', 'anonymous');
 		img.onload = function() {
 			var imgWidth = this.width;
 			var imgHeight = this.height;
+			
 			viewer.hwRatio = imgHeight / imgWidth;// 记录宽高比，预留后面可能需要使用
-			
-			
 			var $canvas = $('<canvas></canvas>');
-			var length = Math.ceil(Math.sqrt(imgWidth * imgWidth + imgHeight * imgHeight));
+			
+			var length = viewer.getSquareImageLength(imgWidth, imgHeight);
 			$canvas.get(0).height = length;
 			$canvas.get(0).width = length;
 			var context = $canvas.get(0).getContext('2d');
@@ -355,7 +361,7 @@ function VieViewer(src, div, width, height) {
 		console.log('error');
 	}
 	
-	this.load = function(callback) {
+	this.load = function(callback, img) {
 		var viewer = this;
 		
 		// actual action
@@ -364,8 +370,10 @@ function VieViewer(src, div, width, height) {
 				viewer.src = src;
 			}
 			viewer.img = new Image();
+			viewer.img.setAttribute('crossOrigin', 'anonymous');
 			viewer.img.onload = function() {
 				viewer.drawImage();
+				viewer.adjustMargin();
 				viewer.bindMoveEvent();
 				viewer.bindWheelScroll();
 				viewer.bindRotate();
@@ -380,7 +388,7 @@ function VieViewer(src, div, width, height) {
 		}
 		
 		if (!this.src) {
-			this.loadSquareImage(action);
+			this.loadSquareImage(action, img);
 		} else {
 			action();
 		}
@@ -536,6 +544,26 @@ function VieViewer(src, div, width, height) {
 			var $triggerBtn = $('<a href="' + url + '" download="' + name + '">' + name + '</a>');
 			$triggerBtn.get(0).click();
 		});
+	}
+	// 更换图片
+	this.showNextImage = function(src) {
+		this.xFlip = false;
+		this.yFlip = false;
+		this.scale = null;
+		this.angle = 0;
+		var context = this.canvas.get(0).getContext('2d');
+		context.clearRect(0, 0, width, height);
+		
+		if (src instanceof Image) {
+			var img = src;
+			this.rawSrc = img.src;
+			this.src = null;
+			this.load(null, img);
+		} else {
+			this.src = null;
+			this.rawSrc = src;
+			this.load();
+		}
 	}
 	this.loadCanvas();
 }
