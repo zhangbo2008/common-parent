@@ -25,7 +25,7 @@ public class HttpMultipartUtil {
 
 	static Logger logger = Logger.getLogger(HttpMultipartUtil.class);
 	
-	public static String simpleMultipartPost(String url, Map<String, File> files, Map<String, String> params) {
+	public static String simpleMultipartPost(String url, Map<String, File> files, Map<String, Object> params) {
 		final CloseableHttpClient client = HttpClients.createDefault();
 		HttpPost post = new HttpPost(url);
 		final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -39,7 +39,7 @@ public class HttpMultipartUtil {
 		
 		ContentType textType = ContentType.create("text/plain", "UTF-8");
 		params.forEach((key, value) -> {
-			builder.addTextBody(key, value, textType);
+			builder.addTextBody(key, String.valueOf(value), textType);
 		});
 		
 		ContentType fileType = ContentType.create("multipart/form-data", "UTF-8");

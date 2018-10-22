@@ -1,6 +1,8 @@
 package com.uetty.common.tool.core;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -54,6 +56,24 @@ public class FileTool {
 		} finally {
 			if (is != null) {
 				is.close();
+			}
+		}
+	}
+	
+	public static void writeLine(File file, String string) throws IOException {
+		if (!file.exists()) {
+			file.getParentFile().mkdirs();
+			file.createNewFile();
+		}
+		FileOutputStream fis = null;
+		try {
+			fis = new FileOutputStream(file, true);
+			fis.write(string.getBytes());
+			fis.write("\n".getBytes());
+			
+		} finally {
+			if (fis != null) {
+				fis.close();
 			}
 		}
 	}
