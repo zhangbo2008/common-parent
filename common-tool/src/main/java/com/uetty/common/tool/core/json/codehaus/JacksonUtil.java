@@ -35,18 +35,10 @@ public class JacksonUtil {
     }
     
     /**
-     * 序列化时，忽略空值条目
+     * 序列化时，忽略Map中的空值条目
      */
-    public JacksonUtil withDisWriteNullValue() {
+    public JacksonUtil withDisWriteNullMapValue() {
     	this.mapper.configure(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES, false);
-    	return this;
-    }
-
-    /**
-     * 序列化时，包含根节点（xml)
-     */
-    public JacksonUtil withRootName() {
-    	this.mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
     	return this;
     }
 
@@ -77,9 +69,9 @@ public class JacksonUtil {
 
 
     /**
-     * 序列化时，缩放输出字符串
+     * 序列化时，缩进输出字符串
      */
-    public JacksonUtil withIgnoreUnknow() {
+    public JacksonUtil withIndentOutput() {
     	this.mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
         return this;
     }
