@@ -6,9 +6,11 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.Module;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.type.TypeReference;
+
 
 /** 
  * codehaus版本jackson工具类（旧版jackson，新版是fastxml）
@@ -96,7 +98,7 @@ public class JacksonUtil {
     /**
      *  序列化时，不能处理的类型，赋值null
      */
-    public JacksonUtil withAllowControlChars() {
+    public JacksonUtil withIgnoreEmptyBeans() {
     	this.mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
         return this;
     }
@@ -120,6 +122,14 @@ public class JacksonUtil {
         return this;
     }
 
+    /**
+     * 自定义类型转换的支持
+     */
+    public JacksonUtil registerModule(Module module) {
+    	this.mapper.registerModule(module);
+    	return this;
+    }
+    
     /**
      * 将Object对象转化成json字符串
      */
@@ -163,4 +173,5 @@ public class JacksonUtil {
         return this.mapper.readValue(src, t);
     }
 
+    
 }
