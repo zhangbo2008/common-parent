@@ -70,6 +70,7 @@ public class JacksonUtil {
 
     /**
      * 序列化时，缩进输出字符串
+     * <p>缩进输出，即格式化后输出，更利于查看
      */
     public JacksonUtil withIndentOutput() {
     	this.mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
