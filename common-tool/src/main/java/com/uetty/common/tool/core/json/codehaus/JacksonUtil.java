@@ -9,7 +9,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.Module;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.type.TypeReference;
 
 
 /** 
