@@ -10,9 +10,8 @@ import org.codehaus.jackson.map.Module;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
-
 /** 
- * codehaus版本jackson工具类（旧版jackson，新版是fastxml）
+ * codehaus版本jackson工具类（旧版jackson，新版是fasterxml）
  * @author vince
  */
 public class JacksonUtil {
