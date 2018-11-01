@@ -145,26 +145,11 @@ public class JacksonUtil {
     }
 
     /**
-     * 将json字符串转化成Obj
-     */
-    public <T> T json2Obj(String json) throws JsonParseException, JsonMappingException, IOException {
-        return this.mapper.readValue(json, new TypeReference<T>() {});
-    }
-
-    /**
-     * 将byte数组转换成Obj
-     */
-    public <T> T byte2Obj(byte[] by) throws JsonParseException, JsonMappingException, IOException {
-        return this.mapper.readValue(by, new TypeReference<T>() {});
-    }
-
-    /**
      * 将json字符串转化成bean对象
      */
     public <T> T json2Obj(String json, Class<T> t) throws JsonParseException, JsonMappingException, IOException {
         return this.mapper.readValue(json, t);
     }
-
 
     /**
      * 将byte数组转换成对象
