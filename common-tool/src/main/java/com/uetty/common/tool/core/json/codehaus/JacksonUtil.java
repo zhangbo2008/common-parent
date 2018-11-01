@@ -169,7 +169,7 @@ public class JacksonUtil {
     /**
      * 将byte数组转换成对象
      */
-    public <T> T byte2Bean(byte[] src, Class<T> t) throws JsonParseException, JsonMappingException, IOException {
+    public <T> T byte2Obj(byte[] src, Class<T> t) throws JsonParseException, JsonMappingException, IOException {
         return this.mapper.readValue(src, t);
     }
 
