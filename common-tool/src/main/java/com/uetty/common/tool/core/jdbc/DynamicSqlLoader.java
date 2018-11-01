@@ -130,7 +130,7 @@ public class DynamicSqlLoader {
 		testBlock();
 		
 		StringBuffer sb = new StringBuffer();
-		List<Integer> closeIndexStack = new ArrayList<Integer>();
+		List<Integer> closeIndexStack = new ArrayList<Integer>(); // 待处理close标志栈
 		int index = 0;
 		for (int i = 0; i < blockList.size(); ) {
 			DynamicBlock block = blockList.get(i);
@@ -139,13 +139,13 @@ public class DynamicSqlLoader {
 				i++; // 该区块在游标之前，忽略跳过
 			} else {
 				// 当前open标志在游标之后，执行后面代码
-				if (closeIndexStack.size() == 0 // 没有待关闭的close标志
-						|| block.open < closeIndexStack.get(closeIndexStack.size() - 1)) { // 或在待关闭的close标志前，可以开启open标志
+				if (closeIndexStack.size() == 0 // 没有待处理的close标志
+						|| block.open < closeIndexStack.get(closeIndexStack.size() - 1)) { // 或在待处理的close标志前，可以开启open标志
 					sb.append(rawTempSql.substring(index, block.open));
 					Boolean boo = namespaceModeMap.get(block.namespace);
 					if (boo != null && boo) {
 						index = block.middle + BLOCK_MIDDLE.length;
-						closeIndexStack.add(block.close);// 栈中添加待关闭的close标志位置
+						closeIndexStack.add(block.close);// 栈中添加待处理的close标志位置
 					} else { // 不显示该块
 						index = block.close + BLOCK_CLOSE.length;
 					}
@@ -159,12 +159,13 @@ public class DynamicSqlLoader {
 				nextOpen = blockList.get(i).open;
 			}
 			
+			// 检查有没有待处理的close标志，并处理可以处理的项
 			for (int j = closeIndexStack.size() - 1; j >= 0; j--) {
 				Integer closeIndex = closeIndexStack.get(j);
-				if (closeIndex < nextOpen) { // 该close标志是可完成关闭的
+				if (closeIndex < nextOpen) { // 该close标志是可处理的
 					sb.append(rawTempSql.substring(index, closeIndex));
 					index = closeIndex + BLOCK_CLOSE.length; // 更新游标
-					closeIndexStack.remove(j);// 将close标志位置从待关闭栈中移除
+					closeIndexStack.remove(j);// 将close标志位置从待处理栈中移除
 				} else {
 					// 不可关闭
 					break;
