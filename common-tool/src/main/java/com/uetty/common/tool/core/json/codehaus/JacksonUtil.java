@@ -64,7 +64,7 @@ public class JacksonUtil {
     /**
      * 反序列化时，忽略未知属性
      */
-    public JacksonUtil withDisFailIgnoged() {
+    public JacksonUtil withDisFailUnknow() {
     	this.mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return this;
     }
