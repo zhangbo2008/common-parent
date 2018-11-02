@@ -11,13 +11,13 @@ import java.util.Map;
  */
 public class DynamicSqlLoader {
 
-	public static final String BLOCK_OPEN_FLAG = "#[";
-	public static final String BLOCK_MIDDLE_FLAG = "]{";
-	public static final String BLOCK_CLOSE_FLAG = "}#";
+	public static final String BLOCK_OPEN = "#[";
+	public static final String BLOCK_MIDDLE = "]{";
+	public static final String BLOCK_CLOSE = "}#";
 	
-	private static final char[] BLOCK_OPEN = BLOCK_OPEN_FLAG.toCharArray(); // 匹配开头
-	private static final char[] BLOCK_MIDDLE = BLOCK_MIDDLE_FLAG.toCharArray(); // 匹配中间部分
-	private static final char[] BLOCK_CLOSE = BLOCK_CLOSE_FLAG.toCharArray(); // 匹配结尾
+	private static final char[] BLOCK_OPEN_CHARS = BLOCK_OPEN.toCharArray(); // 匹配开头
+	private static final char[] BLOCK_MIDDLE_CHARS = BLOCK_MIDDLE.toCharArray(); // 匹配中间部分
+	private static final char[] BLOCK_CLOSE_CHARS = BLOCK_CLOSE.toCharArray(); // 匹配结尾
 	
 	private String rawTempSql;
 	private List<DynamicBlock> blockList = new ArrayList<DynamicBlock>();
@@ -50,7 +50,7 @@ public class DynamicSqlLoader {
 					ml.open = i;
 					openStack.add(ml);
 					blockList.add(ml);
-					i += BLOCK_OPEN.length;
+					i += BLOCK_OPEN_CHARS.length;
 					continue;
 				}
 			}
@@ -59,9 +59,9 @@ public class DynamicSqlLoader {
 				if (matchMiddle) {
 					DynamicBlock ml = openStack.get(openStack.size() - 1);
 					ml.middle = i;
-					ml.namespace = rawTempSql.substring(ml.open + BLOCK_OPEN.length, ml.middle).trim();
+					ml.namespace = rawTempSql.substring(ml.open + BLOCK_OPEN_CHARS.length, ml.middle).trim();
 					middleStack.add(ml);
-					i += BLOCK_MIDDLE.length;
+					i += BLOCK_MIDDLE_CHARS.length;
 					continue;
 				}
 			}
@@ -72,7 +72,7 @@ public class DynamicSqlLoader {
 					ml.close = i;
 					middleStack.remove(middleStack.size() - 1);
 					openStack.remove(openStack.size() - 1);
-					i += BLOCK_CLOSE.length;
+					i += BLOCK_CLOSE_CHARS.length;
 					continue;
 				}
 			}
@@ -81,21 +81,21 @@ public class DynamicSqlLoader {
 		
 		if (middleStack.size() == openStack.size() && middleStack.size() > 0) { // 未关闭的sql块
 			DynamicBlock ml = middleStack.remove(middleStack.size() - 1);
-			throw new RuntimeException("no '" + new String(BLOCK_CLOSE) + "' matched to close namespace [" + ml.namespace + "] in '" + rawTempSql.substring(ml.middle + BLOCK_MIDDLE.length) + "'");
+			throw new RuntimeException("no '" + new String(BLOCK_CLOSE_CHARS) + "' matched to close namespace [" + ml.namespace + "] in '" + rawTempSql.substring(ml.middle + BLOCK_MIDDLE_CHARS.length) + "'");
 		}
 		if (openStack.size() > 0) { // 只有open标记的sql块
 			DynamicBlock ml = openStack.remove(openStack.size() - 1);
-			throw new RuntimeException("'" + new String(BLOCK_MIDDLE) + "' not found in tempSql '" + rawTempSql.substring(ml.open + BLOCK_OPEN.length) + "'");
+			throw new RuntimeException("'" + new String(BLOCK_MIDDLE_CHARS) + "' not found in tempSql '" + rawTempSql.substring(ml.open + BLOCK_OPEN_CHARS.length) + "'");
 		}
 	}
 	
 	
 	private boolean matchOpen(int index, char[] charArray) {
-		if (charArray.length < BLOCK_OPEN.length + index) {
+		if (charArray.length < BLOCK_OPEN_CHARS.length + index) {
 			return false;
 		}
-		for (int i = index; i < BLOCK_OPEN.length + index; i++) {
-			if (BLOCK_OPEN[i - index] != charArray[i]) {
+		for (int i = index; i < BLOCK_OPEN_CHARS.length + index; i++) {
+			if (BLOCK_OPEN_CHARS[i - index] != charArray[i]) {
 				return false;
 			}
 		}
@@ -103,11 +103,11 @@ public class DynamicSqlLoader {
 	}
 	
 	private boolean matchMiddle(int index, char[] charArray) {
-		if (charArray.length < BLOCK_MIDDLE.length + index) {
+		if (charArray.length < BLOCK_MIDDLE_CHARS.length + index) {
 			return false;
 		}
-		for (int i = index; i < BLOCK_MIDDLE.length + index; i++) {
-			if (BLOCK_MIDDLE[i - index] != charArray[i]) {
+		for (int i = index; i < BLOCK_MIDDLE_CHARS.length + index; i++) {
+			if (BLOCK_MIDDLE_CHARS[i - index] != charArray[i]) {
 				return false;
 			}
 		}
@@ -115,11 +115,11 @@ public class DynamicSqlLoader {
 	}
 	
 	private boolean matchClose(int index, char[] charArray) {
-		if (charArray.length < BLOCK_CLOSE.length + index) {
+		if (charArray.length < BLOCK_CLOSE_CHARS.length + index) {
 			return false;
 		}
-		for (int i = index; i < BLOCK_CLOSE.length + index; i++) {
-			if (BLOCK_CLOSE[i - index] != charArray[i]) {
+		for (int i = index; i < BLOCK_CLOSE_CHARS.length + index; i++) {
+			if (BLOCK_CLOSE_CHARS[i - index] != charArray[i]) {
 				return false;
 			}
 		}
@@ -144,10 +144,10 @@ public class DynamicSqlLoader {
 					sb.append(rawTempSql.substring(index, block.open));
 					Boolean boo = namespaceModeMap.get(block.namespace);
 					if (boo != null && boo) {
-						index = block.middle + BLOCK_MIDDLE.length;
+						index = block.middle + BLOCK_MIDDLE_CHARS.length;
 						closeIndexStack.add(block.close);// 栈中添加待处理的close标志位置
 					} else { // 不显示该块
-						index = block.close + BLOCK_CLOSE.length;
+						index = block.close + BLOCK_CLOSE_CHARS.length;
 					}
 					i++; // 当前open标志被使用了，指向下一个
 				}
@@ -164,7 +164,7 @@ public class DynamicSqlLoader {
 				Integer closeIndex = closeIndexStack.get(j);
 				if (closeIndex < nextOpen) { // 该close标志是可处理的
 					sb.append(rawTempSql.substring(index, closeIndex));
-					index = closeIndex + BLOCK_CLOSE.length; // 更新游标
+					index = closeIndex + BLOCK_CLOSE_CHARS.length; // 更新游标
 					closeIndexStack.remove(j);// 将close标志位置从待处理栈中移除
 				} else {
 					// 不可关闭
