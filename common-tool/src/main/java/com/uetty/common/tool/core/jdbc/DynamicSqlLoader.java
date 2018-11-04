@@ -34,6 +34,10 @@ public class DynamicSqlLoader {
 	public void setNamespaceMode(String namespace, boolean isShow) {
 		namespaceModeMap.put(namespace, isShow);
 	}
+	
+	public void clearBlockList() {
+		blockList.clear();
+	}
 
 	/**
 	 *  检测动态代码块区域
@@ -127,7 +131,9 @@ public class DynamicSqlLoader {
 	}
 	
 	public String loadSql() {
-		testBlock();
+		if (blockList.size() == 0) {
+			testBlock();
+		}
 		
 		StringBuffer sb = new StringBuffer();
 		List<Integer> closeIndexStack = new ArrayList<Integer>(); // 待处理close标志栈
@@ -214,6 +220,14 @@ public class DynamicSqlLoader {
 		DynamicSqlLoader loader = new DynamicSqlLoader(SEARCH_REQUIRE_LIST);
 		loader.setNamespaceMode("userSearch", true);
 		loader.setNamespaceMode("versionSearch", true);
-		System.out.println(loader.loadSql());
+		
+		String sql1 = loader.loadSql();
+		System.out.println(sql1);
+		System.out.println();
+		String sql2 = loader.loadSql();
+		System.out.println(sql2);
+		
+		System.out.println();
+		System.out.println(sql1.equals(sql2));
 	}
 }
