@@ -119,6 +119,12 @@
             <scope>provided</scope>
         </dependency>
 		
+		<!-- java模拟浏览器工具 -->
+		<dependency>
+		    <groupId>net.sourceforge.htmlunit</groupId>
+		    <artifactId>htmlunit</artifactId>
+		    <version>2.33</version>
+		</dependency>
 		
 	</dependencies>
 
