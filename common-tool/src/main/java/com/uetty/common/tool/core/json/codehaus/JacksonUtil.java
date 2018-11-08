@@ -28,6 +28,7 @@ public class JacksonUtil {
 
     /**
      * 反序列化时，空字符串转为null
+     * <p>这里容易理解有歧义，java类属性不是String的时候会出现null，否则还是空字符串
      */
     public JacksonUtil withEmptyStringAsNull() {
     	this.mapper.configure(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
