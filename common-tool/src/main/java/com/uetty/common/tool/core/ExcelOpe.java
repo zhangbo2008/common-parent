@@ -493,7 +493,8 @@ public class ExcelOpe {
                     if (rtxt == null) {
                         break;
                     }
-                    String txt = rtxt.getString().replace("　", "").replace(" ", "");
+                    // 全角空格转为半角空格
+                    String txt = rtxt.getString().replace("　", " ");
                     value = txt;
                     break;
                 default:
