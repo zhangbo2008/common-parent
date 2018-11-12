@@ -10,7 +10,7 @@ public class EscapeHtmlUtil {
 	static {
 		// 标签包含包裹内容一起被删掉的标签名
 		String[] fullEscapeTag = new String[]{
-				"script", "video", "audio", "style", "colgroup", "select", "img"
+				"script", "video", "audio", "style", "colgroup", "select", "img", "option", "optgroup"
 				};
 		// 头标签被替换成换行符的标签名
 		String[] escapeByLFTag = new String[]{
