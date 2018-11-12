@@ -6,60 +6,62 @@ import java.util.Map;
 
 public class EscapeHtmlUtil {
 
-	static Map<String, String> REPLACE_MAP = new LinkedHashMap<>();
+	static Map<String, String> ESCAPE_HTML_REPLACE_MAP = new LinkedHashMap<String, String>();
+	static Map<String, String> ESCAPE_SCRIPT_REPLACE_MAP = new LinkedHashMap<String, String>();
 	static {
 		// 标签包含包裹内容一起被删掉的标签名
 		String[] fullEscapeTag = new String[]{
-				"script", "video", "audio", "style", "colgroup", "select", "img", "option", "optgroup"
+				"head", "title", "script", "video", "audio", "style", "colgroup", "select", "img", "option",
+				"optgroup", "link", "meta"
 				};
 		// 头标签被替换成换行符的标签名
 		String[] escapeByLFTag = new String[]{
 				"div", "p", "br", "iframe", "html", "table", "thead", "tr", "hr",
-				"h1", "h2", "h3", "h4", "h5", "li"
+				"h1", "h2", "h3", "h4", "h5", "li", "tbody"
 		};
 		// 头标签与尾标签被替换成空格的标签名
 		String[] escapeByBlankTag = new String[]{
-				"a", "td", "th", "blockquote", "form", "nav", "code"
+				"a", "td", "th", "blockquote", "form", "nav", "code", "body"
 		};
 		// 其他头标签与尾标签替换成空字符的标签名
 		String[] otherTag = new String[] {
 				"span", "label", "ul", "ol", "u", "col", "b", "input", "button", "i"
 		};
 		
-		REPLACE_MAP.put("(?s)<!--.*?-->", "");
+		ESCAPE_HTML_REPLACE_MAP.put("(?s)<!--.*?-->", "");
 		
 		// 标签包含包裹内容一起被删掉的匹配规则
-		StringBuffer escape1 = new StringBuffer();
+		StringBuilder escape1 = new StringBuilder();
 		escape1.append("(?i)(?s)"); // 大小写不敏感，.匹配行终止符
 		for (String tag : fullEscapeTag) {
 			escape1.append("(<" + tag + "([ ]+[^ >]+?)*[ ]*>.*?</" + tag + ">)");
 			escape1.append("|");
 		}
 		escape1.delete(escape1.length() - 1, escape1.length());
-		REPLACE_MAP.put(escape1.toString(), "");
+		ESCAPE_HTML_REPLACE_MAP.put(escape1.toString(), "");
 		
 		// 替换成换行符的匹配规则
-		StringBuffer escape2 = new StringBuffer();
+		StringBuilder escape2 = new StringBuilder();
 		escape2.append("(?i)(?s)");
 		for (String tag : escapeByLFTag) {
 			escape2.append("(<" + tag + "([ ]+[^ >]+?)*[ ]*[/]?>)");
 			escape2.append("|");
 		}
 		escape2.delete(escape2.length() - 1, escape2.length());
-		REPLACE_MAP.put(escape2.toString(), "\n");
+		ESCAPE_HTML_REPLACE_MAP.put(escape2.toString(), "\n");
 
 		// 替换成空格的匹配规则
-		StringBuffer escape3 = new StringBuffer();
+		StringBuilder escape3 = new StringBuilder();
 		escape3.append("(?i)(?s)");
 		for (String tag : escapeByBlankTag) {
 			escape3.append("(<" + tag + "([ ]+[^ >]+?)*[ ]*[/]?>)|(</" + tag + ">)");
 			escape3.append("|");
 		}
 		escape3.delete(escape3.length() - 1, escape3.length());
-		REPLACE_MAP.put(escape3.toString(), "  ");
+		ESCAPE_HTML_REPLACE_MAP.put(escape3.toString(), "  ");
 
 		// 替换成空字符的匹配规则
-		StringBuffer escape4 = new StringBuffer();
+		StringBuilder escape4 = new StringBuilder();
 		escape4.append("(?i)(?s)");
 		for (String tag : otherTag) {
 			escape4.append("(<" + tag + "([ ]+[^ >]+?)*[ ]*[/]?>)|(</" + tag + ">)");
@@ -74,16 +76,39 @@ public class EscapeHtmlUtil {
 			escape4.append("|");
 		}
 		escape4.delete(escape4.length() - 1, escape4.length());
-		REPLACE_MAP.put(escape4.toString(), "");
+		ESCAPE_HTML_REPLACE_MAP.put(escape4.toString(), "");
+		
+		// 去除脚本
+		ESCAPE_SCRIPT_REPLACE_MAP.put("(?s)<!--.*?-->", "");
+		StringBuilder scriptEscape = new StringBuilder();
+		scriptEscape.append("(?i)(?s)");
+		scriptEscape.append("(<script([ ]+[^ >]+?)*[ ]*>.*?</script>)");
+		scriptEscape.append("|");
+		scriptEscape.append("(<link([ ]+[^ >]+?)*[ ]*>.*?</link>)");
+		scriptEscape.append("|");
+		scriptEscape.append("(<style([ ]+[^ >]+?)*[ ]*>.*?</style>)");
+		scriptEscape.append("|");
+		scriptEscape.append("(<meta([ ]+[^ >]+?)*[ ]*>.*?</meta>)");
+		ESCAPE_SCRIPT_REPLACE_MAP.put(scriptEscape.toString(), "");
 	}
 	
 	public static String escapeHtml(String text) {
-		Iterator<String> keyItr = REPLACE_MAP.keySet().iterator();
+		Iterator<String> keyItr = ESCAPE_HTML_REPLACE_MAP.keySet().iterator();
 		while (keyItr.hasNext()) {
 			String key = keyItr.next();
-			text = text.replaceAll(key, REPLACE_MAP.get(key));
+			text = text.replaceAll(key, ESCAPE_HTML_REPLACE_MAP.get(key));
 		}
 		text = text.replace("<", "&lt;").replace(">", "&gt;");
+		text = text.replaceAll("\n+", "\n");
+		return text;
+	}
+	
+	public static String escapeScript(String text) {
+		Iterator<String> keyItr = ESCAPE_SCRIPT_REPLACE_MAP.keySet().iterator();
+		while (keyItr.hasNext()) {
+			String key = keyItr.next();
+			text = text.replaceAll(key, ESCAPE_SCRIPT_REPLACE_MAP.get(key));
+		}
 		text = text.replaceAll("\n+", "\n");
 		return text;
 	}
@@ -99,489 +124,222 @@ public class EscapeHtmlUtil {
 //				"火狐来测一测\n" + 
 //				"火狐来测一测\n" + 
 //				"火狐来测一测</bigtext>";
-		String str = "<div class=\"container\">\n" + 
-				"  <form class=\"form-horizontal\" role=\"form\">\n" + 
-				"    <div class=\"form-group\">\n" + 
-				"      <label for=\"basic\" class=\"col-lg-2 control-label\">\n" + 
-				"        Large Select (liveSearch enabled, container: 'body')\n" + 
-				"      </label>\n" + 
-				"      <div class=\"col-lg-5\">\n" + 
-				"        <label>\n" + 
-				"          Standard\n" + 
-				"        </label>\n" + 
-				"        <select class=\"selectpicker form-control\" id=\"number\" data-container=\"body\" data-live-search=\"true\" title=\"Select a number\" data-hide-disabled=\"true\"/>\n" + 
-				"      </div>\n" + 
-				"      <div class=\"col-lg-5\">\n" + 
-				"        <label>\n" + 
-				"          Multiple (no virtualScroll)\n" + 
-				"        </label>\n" + 
-				"        <select multiple=\"\" class=\"selectpicker form-control\" id=\"number-multiple\" data-container=\"body\" data-live-search=\"true\" title=\"Select a number\" data-hide-disabled=\"true\" data-actions-box=\"true\" data-virtual-scroll=\"false\"/>\n" + 
-				"      </div>\n" + 
-				"    </div>\n" + 
-				"  </form>\n" + 
-				"  <form class=\"form-horizontal\" role=\"form\">\n" + 
-				"    <div class=\"form-group\">\n" + 
-				"      <label for=\"basic\" class=\"col-lg-2 control-label\">\n" + 
-				"        Large Select (liveSearch disabled)\n" + 
-				"      </label>\n" + 
-				"      <div class=\"col-lg-5\">\n" + 
-				"        <label>\n" + 
-				"          Standard\n" + 
-				"        </label>\n" + 
-				"        <select class=\"selectpicker form-control\" id=\"number2\" data-live-search=\"true\" title=\"Select a number\" data-hide-disabled=\"true\"/>\n" + 
-				"      </div>\n" + 
-				"      <div class=\"col-lg-5\">\n" + 
-				"        <label>\n" + 
-				"          Multiple\n" + 
-				"        </label>\n" + 
-				"        <select class=\"selectpicker form-control\" id=\"number2-multiple\" data-live-search=\"true\" title=\"Select a number\" data-hide-disabled=\"false\" data-actions-box=\"true\" multiple=\"\"/>\n" + 
-				"      </div>\n" + 
-				"    </div>\n" + 
-				"  </form>\n" + 
-				"  <hr/>\n" + 
-				"  <form class=\"form-horizontal\" role=\"form\">\n" + 
-				"    <div class=\"form-group\">\n" + 
-				"      <label for=\"basic\" class=\"col-lg-2 control-label\">\n" + 
-				"        \"Basic\" (liveSearch disabled)\n" + 
-				"      </label>\n" + 
-				"      <div class=\"col-lg-10\">\n" + 
-				"        <select id=\"basic\" class=\"selectpicker show-tick form-control\">\n" + 
-				"          <option>\n" + 
-				"            cow\n" + 
-				"          </option>\n" + 
-				"          <option data-subtext=\"option subtext\">\n" + 
-				"            bull\n" + 
-				"          </option>\n" + 
-				"          <option data-divider=\"true\"/>\n" + 
-				"          <option class=\"get-class\" disabled=\"\">\n" + 
-				"            ox\n" + 
-				"          </option>\n" + 
-				"          <optgroup label=\"test\" data-subtext=\"optgroup subtext\">\n" + 
-				"            <option>\n" + 
-				"              ASD\n" + 
-				"            </option>\n" + 
-				"            <option selected=\"\">\n" + 
-				"              Bla\n" + 
-				"            </option>\n" + 
-				"            <option>\n" + 
-				"              Ble\n" + 
-				"            </option>\n" + 
-				"          </optgroup>\n" + 
-				"        </select>\n" + 
-				"      </div>\n" + 
-				"    </div>\n" + 
-				"  </form>\n" + 
-				"  <hr/>\n" + 
-				"  <form class=\"form-horizontal\" role=\"form\">\n" + 
-				"    <div class=\"form-group\">\n" + 
-				"      <label for=\"basic\" class=\"col-lg-2 control-label\">\n" + 
-				"        \"Basic\" (liveSearch enabled)\n" + 
-				"      </label>\n" + 
-				"      <div class=\"col-lg-10\">\n" + 
-				"        <select id=\"basic\" class=\"selectpicker show-tick form-control\" data-live-search=\"true\">\n" + 
-				"          <option>\n" + 
-				"            cow\n" + 
-				"          </option>\n" + 
-				"          <option data-subtext=\"option subtext\">\n" + 
-				"            bull\n" + 
-				"          </option>\n" + 
-				"          <option class=\"get-class\" disabled=\"\">\n" + 
-				"            ox\n" + 
-				"          </option>\n" + 
-				"          <optgroup label=\"test\" data-subtext=\"optgroup subtext\">\n" + 
-				"            <option>\n" + 
-				"              ASD\n" + 
-				"            </option>\n" + 
-				"            <option selected=\"\">\n" + 
-				"              Bla\n" + 
-				"            </option>\n" + 
-				"            <option>\n" + 
-				"              Ble\n" + 
-				"            </option>\n" + 
-				"          </optgroup>\n" + 
-				"        </select>\n" + 
-				"      </div>\n" + 
-				"    </div>\n" + 
-				"  </form>\n" + 
-				"  <hr/>\n" + 
-				"  <form class=\"form-horizontal\" role=\"form\">\n" + 
-				"    <div class=\"form-group\">\n" + 
-				"      <label for=\"basic2\" class=\"col-lg-2 control-label\">\n" + 
-				"        \"Basic\" (multiple, maxOptions=1)\n" + 
-				"      </label>\n" + 
-				"      <div class=\"col-lg-10\">\n" + 
-				"        <select id=\"basic2\" class=\"show-tick form-control\" multiple=\"\">\n" + 
-				"          <option>\n" + 
-				"            cow\n" + 
-				"          </option>\n" + 
-				"          <option>\n" + 
-				"            bull\n" + 
-				"          </option>\n" + 
-				"          <option class=\"get-class\" disabled=\"\">\n" + 
-				"            ox\n" + 
-				"          </option>\n" + 
-				"          <optgroup label=\"test\" data-subtext=\"another test\">\n" + 
-				"            <option>\n" + 
-				"              ASD\n" + 
-				"            </option>\n" + 
-				"            <option selected=\"\">\n" + 
-				"              Bla\n" + 
-				"            </option>\n" + 
-				"            <option>\n" + 
-				"              Ble\n" + 
-				"            </option>\n" + 
-				"          </optgroup>\n" + 
-				"        </select>\n" + 
-				"      </div>\n" + 
-				"    </div>\n" + 
-				"  </form>\n" + 
-				"  <hr/>\n" + 
-				"  <form class=\"form-horizontal\" role=\"form\">\n" + 
-				"    <div class=\"form-group\">\n" + 
-				"      <label for=\"maxOption2\" class=\"col-lg-2 control-label\">\n" + 
-				"        multiple, show-menu-arrow, maxOptions=2\n" + 
-				"      </label>\n" + 
-				"      <div class=\"col-lg-10\">\n" + 
-				"        <select id=\"maxOption2\" class=\"selectpicker show-menu-arrow form-control\" multiple=\"\" data-max-options=\"2\">\n" + 
-				"          <option>\n" + 
-				"            chicken\n" + 
-				"          </option>\n" + 
-				"          <option>\n" + 
-				"            turkey\n" + 
-				"          </option>\n" + 
-				"          <option disabled=\"\">\n" + 
-				"            duck\n" + 
-				"          </option>\n" + 
-				"          <option>\n" + 
-				"            goose\n" + 
-				"          </option>\n" + 
-				"        </select>\n" + 
-				"      </div>\n" + 
-				"    </div>\n" + 
-				"  </form>\n" + 
-				"  <hr/>\n" + 
-				"  <form class=\"form-horizontal\" role=\"form\">\n" + 
-				"    <div class=\"form-group form-group-lg\">\n" + 
-				"      <label for=\"error\" class=\"col-lg-2 control-label\">\n" + 
-				"        error\n" + 
-				"      </label>\n" + 
-				"      <div class=\"col-lg-10 error\">\n" + 
-				"        <select id=\"error\" class=\"selectpicker show-tick form-control\">\n" + 
-				"          <option>\n" + 
-				"            pen\n" + 
-				"          </option>\n" + 
-				"          <option>\n" + 
-				"            pencil\n" + 
-				"          </option>\n" + 
-				"          <option selected=\"\">\n" + 
-				"            brush\n" + 
-				"          </option>\n" + 
-				"        </select>\n" + 
-				"      </div>\n" + 
-				"    </div>\n" + 
-				"  </form>\n" + 
-				"  <hr/>\n" + 
-				"  <form class=\"form-horizontal\" role=\"form\">\n" + 
-				"    <div class=\"form-group has-error form-group-lg\">\n" + 
-				"      <label class=\"control-label col-lg-2\" for=\"country\">\n" + 
-				"        error type 2\n" + 
-				"      </label>\n" + 
-				"      <div class=\"col-lg-10\">\n" + 
-				"        <select id=\"country\" name=\"country\" class=\"form-control selectpicker\">\n" + 
-				"          <option selected=\"selected\">\n" + 
-				"            Argentina\n" + 
-				"          </option>\n" + 
-				"          <option>\n" + 
-				"            United State\n" + 
-				"          </option>\n" + 
-				"          <option>\n" + 
-				"            Mexico\n" + 
-				"          </option>\n" + 
-				"        </select>\n" + 
-				"        <p class=\"help-block\">\n" + 
-				"          No service available in the selected country\n" + 
-				"        </p>\n" + 
-				"      </div>\n" + 
-				"    </div>\n" + 
-				"  </form>\n" + 
-				"  <hr/>\n" + 
-				"  <nav class=\"navbar navbar-default\" role=\"navigation\">\n" + 
-				"    <div class=\"container-fluid\">\n" + 
-				"      <div class=\"navbar-header\">\n" + 
-				"        <a class=\"navbar-brand\" href=\"#\">\n" + 
-				"          Navbar\n" + 
-				"        </a>\n" + 
-				"      </div>\n" + 
-				"      <form class=\"navbar-form navbar-left\" role=\"search\">\n" + 
-				"        <div class=\"form-group\">\n" + 
-				"          <select class=\"selectpicker\" multiple=\"\" data-live-search=\"true\" data-live-search-placeholder=\"Search\" data-actions-box=\"true\">\n" + 
-				"            <optgroup label=\"filter1\">\n" + 
-				"              <option>\n" + 
-				"                option1\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option2\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option3\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option4\n" + 
-				"              </option>\n" + 
-				"            </optgroup>\n" + 
-				"            <optgroup label=\"filter2\">\n" + 
-				"              <option>\n" + 
-				"                option1\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option2\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option3\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option4\n" + 
-				"              </option>\n" + 
-				"            </optgroup>\n" + 
-				"            <optgroup label=\"filter3\">\n" + 
-				"              <option>\n" + 
-				"                option1\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option2\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option3\n" + 
-				"              </option>\n" + 
-				"              <option>\n" + 
-				"                option4\n" + 
-				"              </option>\n" + 
-				"            </optgroup>\n" + 
-				"          </select>\n" + 
-				"        </div>\n" + 
-				"        <div class=\"input-group\">\n" + 
-				"          <input type=\"text\" class=\"form-control\" placeholder=\"Search\" name=\"q\"/>\n" + 
-				"          <div class=\"input-group-btn\">\n" + 
-				"            <button class=\"btn btn-default\" type=\"submit\">\n" + 
-				"              <i class=\"glyphicon glyphicon-search\">\n" + 
-				"              </i>\n" + 
-				"            </button>\n" + 
-				"          </div>\n" + 
-				"        </div>\n" + 
-				"        <button type=\"submit\" class=\"btn btn-default\">\n" + 
-				"          Search\n" + 
-				"        </button>\n" + 
-				"      </form>\n" + 
-				"    </div>\n" + 
-				"    <!-- .container-fluid -->  </nav>\n" + 
-				"  <hr/>\n" + 
-				"  <select id=\"first-disabled\" class=\"selectpicker\" data-hide-disabled=\"true\" data-live-search=\"true\">\n" + 
-				"    <optgroup disabled=\"disabled\" label=\"disabled\">\n" + 
-				"      <option selected=\"selected\">\n" + 
-				"        Hidden\n" + 
-				"      </option>\n" + 
-				"    </optgroup>\n" + 
-				"    <optgroup label=\"Fruit\">\n" + 
-				"      <option>\n" + 
-				"        Apple\n" + 
-				"      </option>\n" + 
-				"      <option>\n" + 
-				"        Orange\n" + 
-				"      </option>\n" + 
-				"    </optgroup>\n" + 
-				"    <optgroup label=\"Vegetable\">\n" + 
-				"      <option>\n" + 
-				"        Corn\n" + 
-				"      </option>\n" + 
-				"      <option>\n" + 
-				"        Carrot\n" + 
-				"      </option>\n" + 
-				"    </optgroup>\n" + 
-				"  </select>\n" + 
-				"  <hr/>\n" + 
-				"  <select id=\"first-disabled2\" class=\"selectpicker\" multiple=\"\" data-hide-disabled=\"true\" data-size=\"5\">\n" + 
-				"    <option>\n" + 
-				"      Apple\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Banana\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Orange\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Pineapple\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Apple2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Banana2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Orange2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Pineapple2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Apple2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Banana2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Orange2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Pineapple2\n" + 
-				"    </option>\n" + 
-				"  </select>\n" + 
-				"  <button id=\"special\" class=\"btn btn-default\">\n" + 
-				"    Hide selected by disabling\n" + 
-				"  </button>\n" + 
-				"  <button id=\"special2\" class=\"btn btn-default\">\n" + 
-				"    Reset\n" + 
-				"  </button>\n" + 
-				"  <p>\n" + 
-				"    Just select 1st element, click button and check list again\n" + 
-				"  </p>\n" + 
-				"  <hr/>\n" + 
-				"  <div class=\"input-group\">\n" + 
-				"    <span class=\"input-group-addon\">\n" + 
-				"      @\n" + 
-				"    </span>\n" + 
-				"    <select class=\"form-control selectpicker\">\n" + 
-				"      <option selected=\"selected\">\n" + 
-				"        One\n" + 
-				"      </option>\n" + 
-				"      <option>\n" + 
-				"        Two\n" + 
-				"      </option>\n" + 
-				"      <option>\n" + 
-				"        Three\n" + 
-				"      </option>\n" + 
-				"    </select>\n" + 
-				"  </div>\n" + 
-				"  <hr/>\n" + 
-				"  <div class=\"input-group\">\n" + 
-				"    <span class=\"input-group-addon\">\n" + 
-				"      @\n" + 
-				"    </span>\n" + 
-				"    <select class=\"form-control selectpicker\" data-mobile=\"true\">\n" + 
-				"      <option selected=\"selected\">\n" + 
-				"        One\n" + 
-				"      </option>\n" + 
-				"      <option>\n" + 
-				"        Two\n" + 
-				"      </option>\n" + 
-				"      <option>\n" + 
-				"        Three\n" + 
-				"      </option>\n" + 
-				"    </select>\n" + 
-				"  </div>\n" + 
-				"  <p>\n" + 
-				"    With \n" + 
-				"    <code>\n" + 
-				"      data-mobile=\"true\"\n" + 
-				"    </code>\n" + 
-				"     option.\n" + 
-				"  </p>\n" + 
-				"  <hr/>\n" + 
-				"  <select id=\"done\" class=\"selectpicker\" multiple=\"\" data-done-button=\"true\">\n" + 
-				"    <option>\n" + 
-				"      Apple\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Banana\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Orange\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Pineapple\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Apple2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Banana2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Orange2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Pineapple2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Apple2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Banana2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Orange2\n" + 
-				"    </option>\n" + 
-				"    <option>\n" + 
-				"      Pineapple2\n" + 
-				"    </option>\n" + 
-				"  </select>\n" + 
-				"  <hr/>\n" + 
-				"  <div class=\"form-group\">\n" + 
-				"    <label for=\"tokens\">\n" + 
-				"      Key words (data-tokens)\n" + 
-				"    </label>\n" + 
-				"    <select id=\"tokens\" class=\"selectpicker form-control\" multiple=\"\" data-live-search=\"true\">\n" + 
-				"      <option data-tokens=\"first\">\n" + 
-				"        I actually am called \"one\"\n" + 
-				"      </option>\n" + 
-				"      <option data-tokens=\"second\">\n" + 
-				"        And me \"two\"\n" + 
-				"      </option>\n" + 
-				"      <option data-tokens=\"last\">\n" + 
-				"        I am \"three\"\n" + 
-				"      </option>\n" + 
-				"    </select>\n" + 
-				"  </div>\n" + 
-				"  <hr/>\n" + 
-				"  <form class=\"form-inline\">\n" + 
-				"    <div class=\"form-group\">\n" + 
-				"      <label class=\"col-md-1 control-label\" for=\"lunchBegins\">\n" + 
-				"        Lunch (Begins search):\n" + 
-				"      </label>\n" + 
-				"    </div>\n" + 
-				"    <div class=\"form-group\">\n" + 
-				"      <select id=\"lunchBegins\" class=\"selectpicker\" data-live-search=\"true\" data-live-search-style=\"begins\" title=\"Please select a lunch ...\">\n" + 
-				"        <option selected=\"selected\">\n" + 
-				"          Hot Dog, Fries and a Soda\n" + 
-				"        </option>\n" + 
-				"        <option>\n" + 
-				"          Burger, Shake and a Smile\n" + 
-				"        </option>\n" + 
-				"        <option>\n" + 
-				"          Sugar, Spice and all things nice\n" + 
-				"        </option>\n" + 
-				"        <option>\n" + 
-				"          Baby Back Ribs\n" + 
-				"        </option>\n" + 
-				"        <option>\n" + 
-				"          A really really long option made to illustrate an issue with the live search in an inline form\n" + 
-				"        </option>\n" + 
-				"      </select>\n" + 
-				"      <yss>\n" + 
-				"        this is yss\n" + 
-				"      </yss>\n" + 
-				"      <img>        " +
-				"      <yhs>\n" + 
-				"        this is yss\n" + 
+		String str = "<div id=\"softverDetails\" class=\"modal fade history-modal in\" style=\"display: block;\" aria-hidden=\"false\">\n" + 
+				"    <div class=\"modal-dialog\">\n" + 
+				"        <div class=\"modal-content\">\n" + 
+				"            <div class=\"modal-header\">\n" + 
+				"                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n" + 
+				"                <h3 class=\"modal-title\">提测版本详情</h3>\n" + 
+				"            </div>\n" + 
+				"            <div class=\"modal-body\">\n" + 
+				"                <ul id=\"softver_details_nav\" class=\"nav nav-tabs\">\n" + 
+				"                    <li class=\"active\"><a id=\"softver_details_nav_base_info\" href=\"#softver_details_base_info\" data-toggle=\"tab\">基本信息</a></li>\n" + 
+				"                    <li><a id=\"softver_details_nav_rls_info\" href=\"#softver_details_rls_info\" data-toggle=\"tab\" class=\"hidden\">发布信息</a></li>\n" + 
+				"                </ul>\n" + 
+				"                <div class=\"tab-content\">\n" + 
+				"                    <div id=\"softver_details_base_info\" class=\"tab-pane fade active in\" style=\"position: relative;\">\n" + 
+				"                        <table class=\"details-table\" style=\"width: 100%;\">\n" + 
+				"                            <thead>\n" + 
+				"                                <tr>\n" + 
+				"                                    <th style=\"width: 25%;\"></th>\n" + 
+				"                                    <th style=\"width: 20%;\"></th>\n" + 
+				"                                    <th style=\"width: 20%;\"></th>\n" + 
+				"                                    <th style=\"width: 35%;\"></th>\n" + 
+				"                                </tr>\n" + 
+				"                            </thead>\n" + 
+				"                            <tbody>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">项目：</td>\n" + 
+				"                                    <td class=\"table-value\" id=\"softver_details_proj\" colspan=\"3\">SSR</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">标题：</td>\n" + 
+				"                                    <td class=\"table-value\" id=\"softver_details_title\" colspan=\"3\">湖北-V3.9.0.3-胡建</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">提测版本号：</td>\n" + 
+				"                                    <td class=\"table-value\" id=\"softver_details_number\" colspan=\"3\">V3.9.0.3</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">状态：</td>\n" + 
+				"                                    <td class=\"table-value\" id=\"softver_details_state\" colspan=\"3\">提测评审中</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">提交人：</td>\n" + 
+				"                                    <td class=\"table-value\" id=\"softver_details_cuser\" colspan=\"3\">方文城</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\" id=\"ti_owne\">当前负责人：</td>\n" + 
+				"                                    <td class=\"table-value\" id=\"softver_details_owner\" colspan=\"3\">蒋玉莹</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">提测时间：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_ctime\">2018-08-31</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">修改时间：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_utime\">2018-08-31</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">测试包存放地址：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_pkgurl\">我噶发</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">建议测试内容：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_tcontent\">我无法</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">测试计划存放地址：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_tpurl\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">测试计划附件：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\">\n" + 
+				"                                        <ul id=\"softver_details_tpfile\"></ul>\n" + 
+				"                                    </td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">测试报告地址：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_trurl\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">测试报告附件：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\">\n" + 
+				"                                        <ul id=\"softver_details_trfile\"></ul>\n" + 
+				"                                    </td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">测试计划变更次数：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_tpchange\">0</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">完成测试时间：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_ttime\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">版本评估时间：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_eetime\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">版本评估评定：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_ejudge\">待定</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">评估决议存放地址：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_erurl\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">评估决议附件：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\">\n" + 
+				"                                        <ul id=\"softver_details_erfile\"></ul>\n" + 
+				"                                    </td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">试商用开始时间：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_bstime\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">试商用结束时间：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_betime\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">试商用评定：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_bjudge\">待定</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">试商用附件：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\">\n" + 
+				"                                        <ul id=\"softver_details_bfile\"></ul>\n" + 
+				"                                    </td>\n" + 
+				"                                </tr>\n" + 
+				"                            </tbody>\n" + 
+				"                        </table>\n" + 
 				"    \n" + 
-				"      </yhs>\n" +
-				"      </img>" + 
+				"                        <!-- box 历史记录  collapse-history -->\n" + 
+				"                        <div class=\"div_history\">\n" + 
+				"                            <div class=\"panel-heading panel-border-hidden mouse-hand collapsed\" role=\"tab\" data-toggle=\"collapse\" href=\"#collapse-history\" aria-expanded=\"true\" aria-controls=\"collapse-history\" style=\"padding-left: 0px;\">\n" + 
+				"                                <h4 class=\"panel-title\" style=\"padding: 0px;\">\n" + 
+				"                                    <a role=\"button\" style=\"font-size: 14px; font-weight: bold;\">历史记录</a>\n" + 
+				"                                    <span class=\"fa fa-chevron-right\" style=\"width: 15px;\"></span>\n" + 
+				"                                </h4>\n" + 
+				"                            </div>\n" + 
+				"                            <div id=\"softver_collapse_history\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"heading-history\" style=\"height: auto; padding-left: 0px;\">\n" + 
+				"                                <div class=\"portlet-body\" style=\"margin-top: 0px; margin-left: 20px; margin-right: 20px;\">\n" + 
+				"                                    <div class=\"div_history_table\">\n" + 
+				"                                        <ol id=\"softver_details_history\" reversed=\"\"><li style=\"list-style-type:decimal\"><span class=\"his-comment\">fangwencheng&nbsp;&nbsp;2018-08-31 09:04:29&nbsp;&nbsp;创建提测单</span>&nbsp;&nbsp;表单记录:<br>【标题】湖北-V3.9.0.3-胡建<br>【版本号】V3.9.0.3<br>【测试包存放位置】我噶发<br>【建议测试内容】我无法</li></ol>\n" + 
+				"                                    </div>\n" + 
+				"                                </div>\n" + 
+				"                            </div>\n" + 
+				"                        </div>\n" + 
+				"                    </div>\n" + 
+				"                    <div id=\"softver_details_rls_info\" class=\"tab-pane fade hidden\" style=\"position: relative;\" hidden=\"hidden\">\n" + 
+				"                       <table class=\"details-table\" style=\"width: 100%;\">\n" + 
+				"                            <thead>\n" + 
+				"                                <tr>\n" + 
+				"                                    <th style=\"width: 25%;\"></th>\n" + 
+				"                                    <th style=\"width: 20%;\"></th>\n" + 
+				"                                    <th style=\"width: 20%;\"></th>\n" + 
+				"                                    <th style=\"width: 35%;\"></th>\n" + 
+				"                                </tr>\n" + 
+				"                            </thead>\n" + 
+				"                            <tbody>\n" + 
+				"                                <!-- 这边的标签页也加一个版本号和状态，利于查看 -->\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">版本号：</td>\n" + 
+				"                                    <td class=\"table-value\" id=\"softver_details_rlsnumber\" colspan=\"3\">V3.9.0.3</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">状态：</td>\n" + 
+				"                                    <td class=\"table-value\" id=\"softver_details_rlsst\" colspan=\"3\">提测评审中</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">版本发布时间：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_rtime\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">发布版本类型：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_rlstype\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">发布程序类型：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_rlsprogtype\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">是否PDM发行：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_pdm\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">待发布程序存放地址：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_prlsurl\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">待发布程序附件：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\">\n" + 
+				"                                        <ul id=\"softver_details_prlsurlfile\"></ul>\n" + 
+				"                                    </td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">发行说明：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_rlsnote\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">发布变更次数：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_rlschange\">0</td>\n" + 
+				"                                </tr>\n" + 
+				"                                <tr>\n" + 
+				"                                    <td class=\"table-key\">发布程序存放地址：</td>\n" + 
+				"                                    <td colspan=\"3\" class=\"table-value\" id=\"softver_details_rlsurl\"></td>\n" + 
+				"                                </tr>\n" + 
+				"                            </tbody>\n" + 
+				"                        </table>\n" + 
+				"                    </div>\n" + 
+				"                </div>\n" + 
+				"            </div>\n" + 
+				"        </div>\n" + 
 				"    </div>\n" + 
-				"  </form>\n" + 
 				"</div>";
 		str = escapeHtml(str.replace("\n", " "));
-		str = str.replaceAll("[\\n][\\s]*[\\n]", "\n").replaceAll("[ ]{3,}", "  ");
+		str = str.replaceAll("[\\n][\\s]*[\\n]", "\n").replaceAll("[ \t]{3,}", "  ");
 //		str = str.replaceAll("[\\s]", "");
 		System.out.println(str);
 	}
