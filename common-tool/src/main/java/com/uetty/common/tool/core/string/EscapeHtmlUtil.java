@@ -34,8 +34,6 @@ public class EscapeHtmlUtil {
 		for (String tag : fullEscapeTag) {
 			escape1.append("(<" + tag + "([ ]+[^ >]+?)*[ ]*>.*?</" + tag + ">)");
 			escape1.append("|");
-//			escape1.append("(<" + tag + "([ ]+[^ >]+?)*[ ]*/>)");
-//			escape1.append("|");
 		}
 		escape1.delete(escape1.length() - 1, escape1.length());
 		REPLACE_MAP.put(escape1.toString(), "");
