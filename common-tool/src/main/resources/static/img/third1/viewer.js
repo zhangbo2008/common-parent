@@ -1228,6 +1228,8 @@
 
   var handlers = {
     click: function click(_ref) {
+      if (_ref.button && _ref.button == 2) return;// 忽略鼠标右键
+      
       var target = _ref.target;
       var options = this.options,
           imageData = this.imageData;
@@ -1473,6 +1475,7 @@
       }
     },
     pointerdown: function pointerdown(e) {
+      if (e.button && e.button == 2) return; // 忽略鼠标右键
       var options = this.options,
           pointers = this.pointers;
 
