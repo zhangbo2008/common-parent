@@ -461,14 +461,8 @@ public class ExcelOpe {
                         value = sdf.format(date);
 
                     } else {
-                        final int formatInt = 49;
-                        final int formatTxt = 176;
-                        if (format == formatInt || format == formatTxt) { // 整型或文本
-                            value = String.valueOf(Math.round(numTxt));
-                        } else {
-                            // value = numTxt;
-                            value = String.valueOf(Math.round(numTxt));
-                        }
+                        // 数值都转为字符串
+                        value = String.valueOf(numTxt);
                     }// 全部当做文本
                     break;
                 case Cell.CELL_TYPE_BOOLEAN:
