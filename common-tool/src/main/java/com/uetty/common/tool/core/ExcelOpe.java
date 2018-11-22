@@ -446,8 +446,6 @@ public class ExcelOpe {
         Object value = null;
         if (cell != null) {
             int cellType = cell.getCellType();
-            CellStyle style = cell.getCellStyle();
-            short format = style.getDataFormat();
             switch (cellType) {
                 case Cell.CELL_TYPE_NUMERIC:
                     double numTxt = cell.getNumericCellValue();
@@ -461,8 +459,13 @@ public class ExcelOpe {
                         value = sdf.format(date);
 
                     } else {
-                        // 数值都转为字符串
-                        value = String.valueOf(numTxt);
+                        // 只能这样处理下整形了
+                    	if (numTxt == ((long)numTxt)) {
+                    		value = String.valueOf((long)numTxt);
+                    	} else {
+                    		value = String.valueOf(numTxt);
+                    	}
+                    	
                     }// 全部当做文本
                     break;
                 case Cell.CELL_TYPE_BOOLEAN:
