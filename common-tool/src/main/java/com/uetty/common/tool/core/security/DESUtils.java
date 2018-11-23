@@ -1,11 +1,8 @@
 package com.uetty.common.tool.core.security;
 
-import java.security.Key;
 import java.security.SecureRandom;
-import java.util.Base64;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;

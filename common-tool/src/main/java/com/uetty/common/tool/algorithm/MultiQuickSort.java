@@ -1,8 +1,6 @@
 package com.uetty.common.tool.algorithm;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 多线程方式快速排序
