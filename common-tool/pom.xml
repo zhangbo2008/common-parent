@@ -101,6 +101,13 @@
 			<artifactId>httpmime</artifactId>
 			<version>4.5.3</version>
 		</dependency>
+		
+		<!-- Jexcel 表格阅读 -->
+		<dependency>
+            <groupId>net.sourceforge.jexcelapi</groupId>
+            <artifactId>jxl</artifactId>
+            <version>2.6.10</version>
+        </dependency>
 	</dependencies>
 	
 	<build>

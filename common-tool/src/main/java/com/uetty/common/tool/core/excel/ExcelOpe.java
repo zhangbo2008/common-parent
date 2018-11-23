@@ -1,4 +1,4 @@
-package com.uetty.common.tool.core;
+package com.uetty.common.tool.core.excel;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,6 +35,12 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+/**
+ * excel操作工具类
+ * <p>支持范围：同时支持xls格式和xlsx格式的excel
+ * <p>缺点：存在数值类型数据，不能区分小数和整数的问题，如：整数5，读取进去会变成5.0，需要依靠填单时在单元格内数值字符串前加英文单引号解决
+ * @author vince
+ */
 public class ExcelOpe {
 
 	/** 时间格式化对象. */
