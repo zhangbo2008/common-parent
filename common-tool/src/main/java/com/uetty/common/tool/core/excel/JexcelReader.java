@@ -7,17 +7,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.uetty.common.tool.core.HttpMultipartUtil;
 
 import jxl.Cell;
-import jxl.CellFeatures;
+import jxl.CellType;
 import jxl.Sheet;
 import jxl.Workbook;
-import jxl.format.CellFormat;
-import jxl.format.Format;
 import jxl.read.biff.BiffException;
 
 /**
@@ -57,32 +54,76 @@ public class JexcelReader implements Closeable {
 		}
 	}
     
+    /**
+     * 获取标签页数量
+     */
     public int getSheetNum() {
     	assertNoClosed();
     	return wb.getNumberOfSheets();
     }
     
+    /**
+     *  根据标签页序号获取标签页
+     */
     public Sheet getSheetAt(int index) {
     	assertNoClosed();
     	return wb.getSheet(index);
     }
     
+    /**
+     * 根据标签页名称获取标签页
+     */
     public Sheet getSheetByName(String name) {
     	assertNoClosed();
     	return wb.getSheet(name);
     }
     
+    /**
+     * 获取所有标签页名称
+     */
     public String[] getSheetNames() {
     	assertNoClosed();
     	return wb.getSheetNames();
     }
     
+    /**
+     * 获取指定序号标签页的指定单元格
+     * @param sheetNum 标签页序号
+     * @param row 第几行
+     * @param col 第几列
+     */
     public Cell getCell(int sheetNum, int row, int col) {
     	assertNoClosed();
     	Sheet sheet = wb.getSheet(sheetNum);
-    	return sheet.getCell(row, col);
+    	try {
+    		Cell cell = sheet.getCell(col, row);
+    		return cell;
+    	} catch (ArrayIndexOutOfBoundsException e) {
+    		return null;
+    	}
+    }
+
+    /**
+     * 获取指定序号标签页的指定单元格
+     * @param sheetNum 标签页序号
+     * @param row 第几行
+     * @param col 第几列
+     */
+    public String getCellValue(int sheetNum, int row, int col) {
+    	assertNoClosed();
+    	Sheet sheet = wb.getSheet(sheetNum);
+    	String value = null;
+    	try {
+    		Cell cell = sheet.getCell(col, row);
+    		value = cell.getContents();
+    	} catch(Exception e) {
+    	}
+    	return value;
     }
     
+    /**
+     * 将某个标签页的数据转换为二维数组
+     */
     public List<List<String>> toListList(int sheetNum) {
     	assertNoClosed();
     	Sheet sheet = wb.getSheet(sheetNum);
@@ -92,28 +133,15 @@ public class JexcelReader implements Closeable {
     		List<String> list = new ArrayList<String>();
     		for (int j = 0; j < row.length; j++) {
     			list.add(row[j].getContents());
-    			CellFeatures cellFeatures = row[j].getCellFeatures();
-    			if (cellFeatures != null) {
-    				@SuppressWarnings("unused")
-    				String comment = cellFeatures.getComment();
-    			}
-    			CellFormat cellFormat = row[j].getCellFormat();
-    			if (cellFormat != null) {
-    				Format format = cellFormat.getFormat();
-    				@SuppressWarnings("unused")
-    				String formatString = format.getFormatString();
-    				
-    			}
-    			@SuppressWarnings("unused")
-    			int columnCnt = row[j].getColumn();
-    			@SuppressWarnings("unused")
-    			int rowCnt = row[j].getRow();
     		}
     		listList.add(list);
     	}
     	return listList;
     }
     
+    /**
+     * 获取某个标签页的某一行数据列表
+     */
     public List<String> getRowValue(int sheetNum, int rowNum) {
     	assertNoClosed();
     	Sheet sheet = wb.getSheet(sheetNum);
@@ -124,6 +152,12 @@ public class JexcelReader implements Closeable {
     		list.add(contents);
     	}
     	return list;
+    }
+    
+    public CellType getCellType(int sheetNum, int row, int col) {
+    	Cell cell = getCell(sheetNum, row, col);
+    	if (cell == null) return null;
+    	return cell.getType();
     }
     
     private void assertNoClosed() {
@@ -161,54 +195,11 @@ public class JexcelReader implements Closeable {
     	close();
     }
     
+    /**
+     * 是否已经关闭
+     */
 	public boolean isClosed() {
 		return closed;
 	}
 
-	/**
-     * 读取表格
-     */
-    public List<String> readExcel(InputStream is) {
-
-        Workbook wb = null;
-
-        try {
-
-            List<String> retList = new ArrayList<String>();
-            wb = Workbook.getWorkbook(is);
-            Sheet sheet = wb.getSheet(0); // 默认取0页
-
-            for (int i = 1; i < sheet.getRows(); i++) {
-
-                String phone = sheet.getCell(0, i).getContents();
-
-                if (StringUtils.isEmpty(phone)) {
-                    logger.debug("skip read biz data,sn is emtpy.");
-                    continue;
-                }
-
-                phone = phone.replace(" ", "");
-
-                retList.add(phone);
-            }
-
-            return retList;
-
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (wb != null) {
-                wb.close();
-            }
-        }
-
-        return null;
-    }
 }
