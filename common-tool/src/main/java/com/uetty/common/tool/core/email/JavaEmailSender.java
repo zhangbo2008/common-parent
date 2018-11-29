@@ -35,7 +35,10 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.MailSSLSocketFactory;
 
-
+/**
+ * 不使用spring库
+ * @author vince
+ */
 public class JavaEmailSender {
 
 	@SuppressWarnings("unused")

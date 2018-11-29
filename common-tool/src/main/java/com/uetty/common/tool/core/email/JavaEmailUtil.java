@@ -30,7 +30,7 @@ public class JavaEmailUtil {
 	private static final String SMTP_PORT = "25";
 	private static final String SMTP_SERVER = "mail.star-net.cn";
 	private static final String SMTP_USERNAME = "fangwencheng@star-net.cn";
-	private static final String SMTP_PASSWORD = "starnet.@66";
+	private static final String SMTP_PASSWORD = "starnet";
 	private static final boolean USE_SSL = false;
 	
 	private static JavaEmailSender emailSender = new JavaEmailSender(SMTP_USERNAME, SMTP_PASSWORD, SMTP_SERVER, SMTP_PORT, USE_SSL);

@@ -108,12 +108,19 @@
             <version>2.6.10</version>
         </dependency>
         
-        <!-- 邮件 -->
+        <!-- 邮件方法1 -->
         <dependency>
 	        <groupId>com.sun.mail</groupId>
 	        <artifactId>javax.mail</artifactId>
 	        <version>1.5.4</version>
 	    </dependency>
+	    
+	    <!-- 邮件方法二 -->
+	    <dependency>
+		    <groupId>org.springframework</groupId>
+		    <artifactId>spring-context-support</artifactId>
+		    <version>5.1.1.RELEASE</version>
+		</dependency>
 	</dependencies>
 	
 	<build>
