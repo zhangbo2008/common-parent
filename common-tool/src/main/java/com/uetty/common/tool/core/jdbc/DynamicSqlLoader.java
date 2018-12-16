@@ -22,7 +22,7 @@ public class DynamicSqlLoader {
 	private String rawTempSql;
 	private List<DynamicBlock> blockList = new ArrayList<DynamicBlock>();
 	private Map<String, Boolean> namespaceModeMap = new HashMap<String, Boolean>();
-
+	private Map<String, String> namespaceReplaceMap = new HashMap<String, String>();
 	
 	public DynamicSqlLoader(String tempSql) {
 		this.rawTempSql = tempSql;
@@ -35,8 +35,20 @@ public class DynamicSqlLoader {
 		namespaceModeMap.put(namespace, isShow);
 	}
 	
+	public void setNamespaceReplace(String namespace, String replaceStr) {
+		if (replaceStr != null) {
+			namespaceReplaceMap.put(namespace, replaceStr);
+			namespaceModeMap.put(namespace, true);
+		}
+	}
+	
 	public void clearBlockList() {
 		blockList.clear();
+	}
+	
+	public void clearModeSet() {
+		namespaceModeMap.clear();
+		namespaceReplaceMap.clear();
 	}
 
 	/**
@@ -149,9 +161,15 @@ public class DynamicSqlLoader {
 						|| block.open < closeIndexStack.get(closeIndexStack.size() - 1)) { // 或在待处理的close标志前，可以开启open标志
 					sb.append(rawTempSql.substring(index, block.open));
 					Boolean boo = namespaceModeMap.get(block.namespace);
-					if (boo != null && boo) {
-						index = block.middle + BLOCK_MIDDLE_CHARS.length;
-						closeIndexStack.add(block.close);// 栈中添加待处理的close标志位置
+					if (boo != null && boo) { // 显示区块
+						String replaceStr = namespaceReplaceMap.get(block.namespace);
+						if (replaceStr != null) { // 区块替换
+							index = block.close + BLOCK_CLOSE_CHARS.length;
+							sb.append(replaceStr);
+						} else { // 正常显示
+							index = block.middle + BLOCK_MIDDLE_CHARS.length;
+							closeIndexStack.add(block.close);// 栈中添加待处理的close标志位置
+						}
 					} else { // 不显示该块
 						index = block.close + BLOCK_CLOSE_CHARS.length;
 					}
@@ -220,6 +238,7 @@ public class DynamicSqlLoader {
 		DynamicSqlLoader loader = new DynamicSqlLoader(SEARCH_REQUIRE_LIST);
 		loader.setNamespaceMode("userSearch", true);
 		loader.setNamespaceMode("versionSearch", true);
+		loader.setNamespaceReplace("noshow", "\n[This is replace string] \n");
 		
 		String sql1 = loader.loadSql();
 		System.out.println(sql1);
