@@ -3,7 +3,6 @@ package com.uetty.common.tool.core.reflect;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,8 +102,8 @@ public class ReflectUtil {
 		Constructor<?>[] constructors = clz.getConstructors();
 		for (Constructor<?> constructor : constructors) {
 			try {
-				Parameter[] requireParams = constructor.getParameters();
-				if (requireParams.length != params.length) {
+				Class<?>[] parameterTypes = constructor.getParameterTypes();
+				if (parameterTypes.length != params.length) {
 					continue;
 				}
 				constructor.setAccessible(true);
