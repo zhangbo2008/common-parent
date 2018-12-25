@@ -60,6 +60,10 @@ public class JavaEmailSender {
 
 	private String smtpPort = "25";
 
+	/**
+	 * 需要SSL加密的地址
+	 * <p>类似于HTTPS
+	 */
 	private boolean useSSL = false;
 	
 	public JavaEmailSender(String userName, String password, String smtpServer, String smtpPort, boolean useSSL) {
