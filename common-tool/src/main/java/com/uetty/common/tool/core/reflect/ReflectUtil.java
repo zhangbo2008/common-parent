@@ -256,7 +256,7 @@ public class ReflectUtil {
 	
 	/**
 	 * 打印类所在的文件路径
-	 * <p> 排bug时使用
+	 * <p> 动态加载框架里多个包含相同类的jar bug时，借用该方法排下bug
 	 */
 	public static void printClassFilePath(Class<?> clz) {
 		try {
@@ -272,7 +272,7 @@ public class ReflectUtil {
 	
 	/**
 	 * 打印classloader中的classpath路径
-	 * <p> 排bug时使用
+	 * <p> 动态加载框架里多个包含相同类的jar bug时，借用该方法排下bug
 	 */
 	public static void printClassloaderClasspath(ClassLoader classloader) {
 		Set<String> classpaths = new HashSet<String>();
