@@ -3,14 +3,24 @@ package com.uetty.common.tool.core.reflect;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 反射工具类
  * @author vince
  */
 public class ReflectUtil {
+	
+	private static Logger logger = LoggerFactory.getLogger(ReflectUtil.class);
 
 	private static String getterName(String fieldName) {
 		return "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
@@ -216,6 +226,81 @@ public class ReflectUtil {
 		}
 		errorMsg += ") not found in class[" + clz.getCanonicalName() + "]";
 		throw new RuntimeException(errorMsg);
+	}
+	
+	/**
+	 * 类包含的变量名
+	 */
+	public static void printContainFieldNames(Class<?> clz) {
+		Set<String> fieldSet = new HashSet<String>();
+		try {
+			Field[] fields = clz.getFields();
+			for (Field field : fields) {
+				fieldSet.add(field.getName());
+			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		try {
+			Field[] fields = clz.getDeclaredFields();
+			for (Field field : fields) {
+				fieldSet.add(field.getName());
+			}
+		} catch (Throwable e) {
+			logger.error(e.getMessage(), e);
+		}
+		for (String string : fieldSet) {
+			logger.debug(string);
+		}
+	}
+	
+	/**
+	 * 打印类所在的文件路径
+	 * <p> 排bug时使用
+	 */
+	public static void printClassFilePath(Class<?> clz) {
+		try {
+			URL resource = clz.getResource("/");
+			if (resource == null) {
+				resource = clz.getProtectionDomain().getCodeSource().getLocation();
+			}
+			logger.debug(resource.getFile());
+		} catch (Throwable e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
+	
+	/**
+	 * 打印classloader中的classpath路径
+	 * <p> 排bug时使用
+	 */
+	public static void printClassloaderClasspath(ClassLoader classloader) {
+		Set<String> classpaths = new HashSet<String>();
+		getClassloaderClasspath(classloader, classpaths);
+		for (Iterator<String> iterator = classpaths.iterator(); iterator.hasNext();) {
+			String string = (String) iterator.next();
+			logger.debug(string);
+		}
+	}
+	
+	/**
+	 * 获取classloader中的classpath路径
+	 */
+	public static void getClassloaderClasspath(ClassLoader classloader, Set<String> classpaths) {
+		if (classloader == null || !(classloader instanceof URLClassLoader)) {
+			return;
+		}
+		try  {
+			URL[] urls = ((URLClassLoader) classloader).getURLs();
+			for (int i = 0; i < urls.length; i++) {
+				classpaths.add(urls[i].getPath());
+			}
+		} catch (Throwable e) {
+			logger.error(e.getMessage(), e);
+		}
+		ClassLoader parent = classloader.getParent();
+		getClassloaderClasspath(parent, classpaths);
+		return;
 	}
 	
 }
