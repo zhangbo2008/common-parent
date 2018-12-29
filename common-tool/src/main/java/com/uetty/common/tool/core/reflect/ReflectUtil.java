@@ -284,10 +284,13 @@ public class ReflectUtil {
 			}
 			if (loadClass != null) {
 				boolean isCurrentClzLocation = false;
-				if (loadClass == clz) {
-					isCurrentClzLocation = true;
-				}
-				logger.debug(url.getPath() + (isCurrentClzLocation ? "(current)" : ""));
+				try {
+					Class<?> loadClass2 = urlLoader.loadClass(clzName);
+					if (loadClass2 == clz) {
+						isCurrentClzLocation = true;
+					}
+				} catch(Exception e) {}
+				logger.debug(url.getPath() + (isCurrentClzLocation ? "  (current)" : ""));
 			}
 		}
 		
