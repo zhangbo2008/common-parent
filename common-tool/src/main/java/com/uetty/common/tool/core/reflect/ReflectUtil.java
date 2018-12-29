@@ -7,7 +7,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -256,51 +255,44 @@ public class ReflectUtil {
 	
 	/**
 	 * 打印类所在的文件路径
-	 * <p> 动态加载框架里多个包含相同类的jar bug时，借用该方法排下bug
+	 * <p> 插件框架里多个有包含相同类的jar出现bug时，借用该方法排除
 	 */
-	public static void printClassFilePath(Class<?> clz) {
-		try {
-			URL resource = clz.getResource("/");
-			if (resource == null) {
-				resource = clz.getProtectionDomain().getCodeSource().getLocation();
-			}
-			logger.debug(resource.getFile());
-		} catch (Throwable e) {
-			logger.error(e.getMessage(), e);
-		}
+	public static void printClassPath(Class<?> clz) {
+		printClassLoaderAndPath(clz.getClassLoader(), clz, clz.getName());
 	}
 	
-	/**
-	 * 打印classloader中的classpath路径
-	 * <p> 动态加载框架里多个包含相同类的jar bug时，借用该方法排下bug
-	 */
-	public static void printClassloaderClasspath(ClassLoader classloader) {
-		Set<String> classpaths = new HashSet<String>();
-		getClassloaderClasspath(classloader, classpaths);
-		for (Iterator<String> iterator = classpaths.iterator(); iterator.hasNext();) {
-			String string = (String) iterator.next();
-			logger.debug(string);
-		}
-	}
-	
-	/**
-	 * 获取classloader中的classpath路径
-	 */
-	public static void getClassloaderClasspath(ClassLoader classloader, Set<String> classpaths) {
-		if (classloader == null || !(classloader instanceof URLClassLoader)) {
+	private static void printClassLoaderAndPath(ClassLoader classloader, Class<?> clz, String clzName) {
+		if (classloader == null) {
 			return;
 		}
-		try  {
-			URL[] urls = ((URLClassLoader) classloader).getURLs();
-			for (int i = 0; i < urls.length; i++) {
-				classpaths.add(urls[i].getPath());
-			}
-		} catch (Throwable e) {
-			logger.error(e.getMessage(), e);
+		logger.debug("classloader ==> " + classloader.toString());
+		if (!(classloader instanceof URLClassLoader)) {
+			return;
 		}
+		
+		URLClassLoader urlLoader = (URLClassLoader) classloader;
+		URL[] urls = urlLoader.getURLs();
+		logger.debug("follow, show contain given class url");
+		for (URL url : urls) {
+			URL[] uls = {url};
+			@SuppressWarnings("resource")
+			URLClassLoader myLoader = new URLClassLoader(uls, null);
+			Class<?> loadClass = null;
+			try {
+				loadClass = myLoader.loadClass(clzName);
+			} catch (ClassNotFoundException e) {
+			}
+			if (loadClass != null) {
+				boolean isCurrentClzLocation = false;
+				if (loadClass == clz) {
+					isCurrentClzLocation = true;
+				}
+				logger.debug(url.getPath() + (isCurrentClzLocation ? "(current)" : ""));
+			}
+		}
+		
 		ClassLoader parent = classloader.getParent();
-		getClassloaderClasspath(parent, classpaths);
-		return;
+		printClassLoaderAndPath(parent, clz, clzName);
 	}
 	
 }
