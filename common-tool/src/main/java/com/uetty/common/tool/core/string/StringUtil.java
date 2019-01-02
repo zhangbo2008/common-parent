@@ -1,5 +1,8 @@
 package com.uetty.common.tool.core.string;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class StringUtil {
 
 	/**
@@ -37,5 +40,14 @@ public class StringUtil {
 			i++;
 		}
 		return str;
+	}
+
+	public static boolean checkEmail(String str) {
+		if(str == null || "".equals(str.trim())) {
+			return false;
+		}
+		Pattern p = Pattern.compile("^\\w+((-\\w+)|(\\.\\w+))*\\@[A-Za-z0-9]+((\\.|-)[A-Za-z0-9]+)*\\.[A-Za-z0-9]+$");
+		Matcher matcher = p.matcher(str);
+		return matcher.matches();
 	}
 }
