@@ -15,10 +15,10 @@ public class ExtFontRegistry extends AbstractFontRegistry {
 
 	@Override
 	protected String resolveFamilyName(String familyName, int style) {
-		if ("宋体".equals(familyName) || "SimSun".equals(familyName)) {
+		if ("\u5b8b\u4f53".equals(familyName) || "SimSun".equals(familyName)) {// 宋体
 			return "simsun";
 		}
-		if ("微软雅黑".equals(familyName)) {
+		if ("\u5fae\u8f6f\u96c5\u9ed1".equals(familyName)) {// 微软雅黑
 			return "microsoft yahei";
 		}
 		return "microsoft yahei";
