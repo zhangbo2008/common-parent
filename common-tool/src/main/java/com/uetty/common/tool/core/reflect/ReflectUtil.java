@@ -255,7 +255,7 @@ public class ReflectUtil {
 	
 	/**
 	 * 打印类所在的文件路径
-	 * <p> 适合插件框架里多个有包含相同类的jar出现bug时，借用该方法排除
+	 * <p> 适合代码多个有包含相同类的jar出现bug时，借用该方法排除
 	 */
 	public static void printClassPath(Class<?> clz) {
 		String classFilePath = clz.getName();
