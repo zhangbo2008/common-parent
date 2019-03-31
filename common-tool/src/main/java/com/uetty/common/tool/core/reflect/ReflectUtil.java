@@ -142,7 +142,7 @@ public class ReflectUtil {
 				return method.invoke(obj);
 			} catch (Exception e) {}
 		} else {
-			// 绝对匹配
+			// 参数类型绝对匹配的方法查找
 			boolean noNull = true;
 			Class<?> pclzs[] = new Class<?>[params.length];
 			for (int i = 0; i < params.length; i++) {
@@ -155,12 +155,12 @@ public class ReflectUtil {
 			}
 			if (noNull) {
 				try {
-					Method method = clz.getMethod(methodName, pclzs);
+					Method method = clz.getMethod(methodName, pclzs); // 参数类型绝对匹配的方法
 					return method.invoke(obj, params);
 				} catch (Exception e) {}
 			}
 			
-			// 子类型匹配
+			// 不追求绝对匹配，只要能调用即可
 			Method[] methods = clz.getMethods();
 			for (Method m : methods) {
 				try {
@@ -188,7 +188,7 @@ public class ReflectUtil {
 				return method.invoke(null);
 			} catch (Exception e) {}
 		} else {
-			// 绝对匹配
+			// 参数类型绝对匹配的方法查找
 			boolean noNull = true;
 			Class<?> pclzs[] = new Class<?>[params.length];
 			for (int i = 0; i < params.length; i++) {
@@ -201,12 +201,12 @@ public class ReflectUtil {
 			}
 			if (noNull) {
 				try {
-					Method method = clz.getMethod(methodName, pclzs);
+					Method method = clz.getMethod(methodName, pclzs); // 参数类型绝对匹配的方法
 					return method.invoke(null, params);
 				} catch (Exception e) {}
 			}
 			
-			// 子类型匹配
+			// 不追求绝对匹配，只要能调用即可
 			Method[] methods = clz.getMethods();
 			for (Method m : methods) {
 				try {
@@ -228,20 +228,20 @@ public class ReflectUtil {
 	}
 	
 	/**
-	 * 类包含的变量名
+	 * 打印该类包含的变量名
 	 */
 	public static void printContainFieldNames(Class<?> clz) {
 		Set<String> fieldSet = new HashSet<String>();
 		try {
-			Field[] fields = clz.getFields();
+			Field[] fields = clz.getFields(); // 公共变量（包含自父类继承的变量）
 			for (Field field : fields) {
 				fieldSet.add(field.getName());
 			}
 		} catch (Throwable e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 		try {
-			Field[] fields = clz.getDeclaredFields();
+			Field[] fields = clz.getDeclaredFields(); // 非公共变量（无法包含自父类继承的变量）
 			for (Field field : fields) {
 				fieldSet.add(field.getName());
 			}
@@ -255,47 +255,69 @@ public class ReflectUtil {
 	
 	/**
 	 * 打印类所在的文件路径
-	 * <p> 插件框架里多个有包含相同类的jar出现bug时，借用该方法排除
+	 * <p> 适合代码多个有包含相同类的jar出现bug时，借用该方法排除
 	 */
 	public static void printClassPath(Class<?> clz) {
-		printClassLoaderAndPath(clz.getClassLoader(), clz, clz.getName());
+		String classFilePath = clz.getName();
+		classFilePath = classFilePath.replace('.', '/');
+		classFilePath += ".class";
+		
+		printClassLoaderAndPath(clz.getClassLoader(), clz, classFilePath);
 	}
 	
-	private static void printClassLoaderAndPath(ClassLoader classloader, Class<?> clz, String clzName) {
+	private static boolean hasClass(URL url, String classFilePath) {
+		try {
+			URL[] uls = {url};
+			@SuppressWarnings("resource")
+			URLClassLoader myLoader = new URLClassLoader(uls, null);
+			URL resource = myLoader.getResource(classFilePath);
+			return resource != null;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	private static void printClassLoaderAndPath(ClassLoader classloader, Class<?> clz, String classFilePath) {
 		if (classloader == null) {
 			return;
 		}
 		logger.debug("classloader ==> " + classloader.toString());
+		
 		if (!(classloader instanceof URLClassLoader)) {
 			return;
 		}
 		
-		URLClassLoader urlLoader = (URLClassLoader) classloader;
-		URL[] urls = urlLoader.getURLs();
-		logger.debug("follow, show contain given class url");
+		URLClassLoader urlClassLoader = (URLClassLoader) classloader;
+		URL[] urls = urlClassLoader.getURLs();
+		
 		for (URL url : urls) {
-			URL[] uls = {url};
-			@SuppressWarnings("resource")
-			URLClassLoader myLoader = new URLClassLoader(uls, null);
-			Class<?> loadClass = null;
-			try {
-				loadClass = myLoader.loadClass(clzName);
-			} catch (ClassNotFoundException e) {
+			if (!hasClass(url, classFilePath)) {
+				continue;
 			}
-			if (loadClass != null) {
-				boolean isCurrentClzLocation = false;
-				try {
-					Class<?> loadClass2 = urlLoader.loadClass(clzName);
-					if (loadClass2 == clz) {
-						isCurrentClzLocation = true;
-					}
-				} catch(Exception e) {}
-				logger.debug(url.getPath() + (isCurrentClzLocation ? "  (current)" : ""));
-			}
+			logger.debug(url.getPath());
 		}
+		logger.debug("------------------------------------------------");
 		
 		ClassLoader parent = classloader.getParent();
-		printClassLoaderAndPath(parent, clz, clzName);
+		printClassLoaderAndPath(parent, clz, classFilePath);
 	}
 	
+	public static void main(String[] args) {
+		printClassPath(ReflectUtil.class);
+
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
