@@ -1,4 +1,4 @@
-package com.uetty.common.tool.core;
+package com.uetty.common.tool.core.http;
 import javax.servlet.http.HttpServletRequest;
 
 

@@ -206,13 +206,11 @@ public class HttpClientUtil {
         return hrr;
     }
 
-    @SuppressWarnings("unused")
     public static HttpResponseVo doPost(String uri, Map<String, Object> headers, Map<String, Object> params) {
         HttpPost httpPost = createPost(uri, headers, params);
         return doRequest(httpPost);
     }
 
-    @SuppressWarnings("unused")
     public static HttpResponseVo doGet(String uri, Map<String, Object> headers, Map<String, Object> params) {
         HttpGet httpGet = createGet(uri, headers, params);
         return doRequest(httpGet);
