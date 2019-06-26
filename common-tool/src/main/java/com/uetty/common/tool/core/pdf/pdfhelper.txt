@@ -1,0 +1,65 @@
+public class PdfHelper {
+    public static ITextRenderer getRender() throws DocumentException, IOException {
+        ITextRenderer render = new ITextRenderer();
+        //添加字体，以支持中文
+        if (System.getProperty("font.path") != null) {
+            String fontPath = System.getProperty("font.path");
+            if (!fontPath.endsWith("/") && !fontPath.endsWith(File.separator)) {
+                fontPath += File.separator;
+            }
+            render.getFontResolver().addFont(fontPath + "cour.ttf", com.itextpdf.text.pdf.BaseFont.IDENTITY_H, com.itextpdf.text.pdf.BaseFont.NOT_EMBEDDED);// 宋体字
+            render.getFontResolver().addFont(fontPath + "arialuni.ttf", com.itextpdf.text.pdf.BaseFont.IDENTITY_H, com.itextpdf.text.pdf.BaseFont.NOT_EMBEDDED);// ar
+        } else if(System.getProperty("os.name").toLowerCase().contains("windows")){
+            render.getFontResolver().addFont("C:/WINDOWS/Fonts/cour.ttf", com.itextpdf.text.pdf.BaseFont.IDENTITY_H, com.itextpdf.text.pdf.BaseFont.NOT_EMBEDDED);// 宋体字
+            render.getFontResolver().addFont("C:/WINDOWS/Fonts/arialuni.ttf", com.itextpdf.text.pdf.BaseFont.IDENTITY_H, com.itextpdf.text.pdf.BaseFont.NOT_EMBEDDED);// arialuni
+        }else{
+            render.getFontResolver().addFont("/usr/share/fonts/cour.ttf", com.itextpdf.text.pdf.BaseFont.IDENTITY_H, com.itextpdf.text.pdf.BaseFont.NOT_EMBEDDED);// 宋体字
+            render.getFontResolver().addFont("/usr/share/fonts/arialuni.ttf", com.itextpdf.text.pdf.BaseFont.IDENTITY_H, com.itextpdf.text.pdf.BaseFont.NOT_EMBEDDED);// arialuni
+        }
+
+        return render;
+    }
+    //获取要写入PDF的内容
+    public static String getPdfContent(String ftlPath, String ftlName, Object o) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
+        return useTemplate(ftlPath, ftlName, o);
+    }
+    //使用freemarker得到html内容
+    public static String useTemplate(String ftlPath, String ftlName, Object o) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
+        String html = null;
+        Template tpl = getFreemarkerConfig(ftlPath).getTemplate(ftlName);
+        tpl.setEncoding("UTF-8");
+        StringWriter writer = new StringWriter();
+        tpl.process(o, writer);
+        writer.flush();
+        html = writer.toString();
+        return html;
+    }
+    /**
+     * 获取Freemarker配置
+     * @param templatePath
+     * @return
+     * @throws IOException
+     */
+    public static Configuration getFreemarkerConfig(String templatePath) throws IOException {
+        Configuration config = new Configuration();
+        config.setDirectoryForTemplateLoading(new File(templatePath));
+        config.setEncoding(Locale.CHINA, "utf-8");
+        return config;
+    }
+    /**
+     * 获取类路径
+     * @return
+     */
+    public static String getPath(){
+//        需要判断操作系统，根据不同的操作系统设置不同的路径
+        String filePathPdf = "";
+        if(System.getProperty("os.name").toLowerCase().contains("windows")){
+            filePathPdf = System.getProperty("user.dir")+File.separator+"webapp"+File.separator+"ftl";
+        }else{
+//         linux 操作系统
+            filePathPdf = System.getProperty("user.dir")+File.separator+"webapps" + File.separator + "secfox" + File.separator +  "webapp" + File.separator+"ftl";
+        }
+
+        return filePathPdf;
+    }
+}
