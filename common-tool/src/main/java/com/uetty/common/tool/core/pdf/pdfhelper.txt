@@ -63,3 +63,165 @@ public class PdfHelper {
         return filePathPdf;
     }
 }
+
+
+
+
+
+
+
+
+
+public class PdfUtils {
+    private static final Logger LOG = LoggerFactory.getLogger(PdfUtils.class);
+
+    /**
+     * 生成PDF到文件
+     * @param ftlPath 模板文件路径（不含文件名）
+     * @param ftlName 模板文件吗（不含路径）
+     * @param imageDiskPath 图片的磁盘路径
+     * @param data 数据
+     * @param outputFile 目标文件（全路径名称）
+     * @throws Exception
+     */
+    public static void generateToFile(String ftlPath,String ftlName,String imageDiskPath,Object data,String outputFile) throws Exception {
+        String html=PdfHelper.getPdfContent(ftlPath, ftlName, data);
+        OutputStream out = null;
+        ITextRenderer render = null;
+        out = new FileOutputStream(outputFile);
+        render = PdfHelper.getRender();
+        render.setDocumentFromString(html);
+        if(imageDiskPath!=null&&!imageDiskPath.equals("")){
+//html中如果有图片，图片的路径则使用这里设置的路径的相对路径，这个是作为根路径
+            render.getSharedContext().setBaseURL("file:/"+imageDiskPath);
+        }
+        render.layout();
+        render.createPDF(out);
+        render.finishPDF();
+        render = null;
+        out.close();
+    }
+    /**
+     * 生成PDF到文件
+     * @param ftlPath 模板文件路径（不含文件名）
+     * @param ftlName 模板文件吗（不含路径）
+     * @param outputFile 目标文件（全路径名称）
+     * @throws Exception
+     */
+    public static void generateToFilePro(String ftlPath,String ftlName,Object data,String outputFile) throws Exception {
+        String html=PdfHelper.getPdfContent(ftlPath, ftlName, data);
+        //此处html不是严格标准闭合的html文件，后面转pdf会报错，故做下述转化
+        String htmlUrl = getHtmlUrl(html);
+
+        HTML2PDF h2p = new HTML2PDF();
+        String str = h2p.getHtmlFile(htmlUrl);
+
+        OutputStream out = null;
+        ITextRenderer render = null;
+        out = new FileOutputStream(outputFile);
+        render = PdfHelper.getRender();
+        render.setDocumentFromString(str);
+        render.layout();
+        render.createPDF(out);
+        render.finishPDF();
+        render = null;
+        out.close();
+    }
+
+    /**
+     * 将htmlcode生成本地文件，再讲本地文件上传至阿里云获取连接
+     * @param htmlCode
+     * @return
+     */
+    private static String getHtmlUrl(String htmlCode){
+        String filePathHtml = System.getProperty("user.dir")+ File.separator+"webapp"+File.separator+"pdftemp"+
+                File.separator+ UUID.randomUUID()+".html";
+        File fileHtml = new File(filePathHtml);
+        try{
+            //判断目标文件所在的目录是否存在
+            if(!fileHtml.getParentFile().exists()) {
+                //如果目标文件所在的目录不存在，则创建父目录
+                LOG.info("目标文件所在目录不存在，准备创建它！");
+                if(!fileHtml.getParentFile().mkdirs()) {
+                    LOG.error("创建目标文件所在目录失败！");
+                    return null;
+                }
+            }
+            if (fileHtml.createNewFile()) {
+                LOG.info("创建单个文件" + fileHtml + "成功！");
+            } else {
+                LOG.error("创建单个文件" + fileHtml + "失败！");
+                return null;
+            }
+            LOG.info(String.valueOf(fileHtml.length()));
+            FileWriter fileWritter = new FileWriter(filePathHtml);
+//            bufferWritter = new BufferedWriter(fileWritter);
+            fileWritter.write(htmlCode);
+            fileWritter.close();
+            LOG.info(String.valueOf(fileHtml.length()));
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        // html文件上传至阿里云 获取链接
+        String urlHtml = "";
+        try {
+            String bucketName = AliOSSUtil.getScannerFilesBucket();
+            ObjectMetadata metadata = new ObjectMetadata();
+            FileInputStream fisHtml = new FileInputStream(fileHtml);
+            String keyHtml ="htmlUpload"+  "/" + "temp" + "/" + "report"+UUID.randomUUID().toString() + ".html";
+            AliOSSUtil aliOSSUtil = new AliOSSUtil();
+            aliOSSUtil.getOSSClient().putObject(bucketName, keyHtml, fisHtml, metadata);
+            urlHtml = aliOSSUtil.getHost(0) + "/" + keyHtml;
+            LOG.info("htmlUrl:"+urlHtml);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return urlHtml;
+    }
+    /**
+     * 生成PDF到输出流中（ServletOutputStream用于下载PDF）
+     * @param ftlPath ftl模板文件的路径（不含文件名）
+     * @param ftlName ftl模板文件的名称（不含路径）
+     * @param imageDiskPath 如果PDF中要求图片，那么需要传入图片所在位置的磁盘路径
+     * @param data 输入到FTL中的数据
+     * @param response HttpServletResponse
+     * @return
+     * @throws TemplateNotFoundException
+     * @throws MalformedTemplateNameException
+     * @throws ParseException
+     * @throws IOException
+     * @throws TemplateException
+     * @throws DocumentException
+     */
+    public static OutputStream generateToServletOutputStream(String ftlPath,String ftlName,String imageDiskPath,Object data,HttpServletResponse response) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException, DocumentException{
+        String html=PdfHelper.getPdfContent(ftlPath, ftlName, data);
+        OutputStream out = null;
+        ITextRenderer render = null;
+        out = response.getOutputStream();
+        render = PdfHelper.getRender();
+        render.setDocumentFromString(html);
+        if(imageDiskPath!=null&&!imageDiskPath.equals("")){
+//html中如果有图片，图片的路径则使用这里设置的路径的相对路径，这个是作为根路径
+            render.getSharedContext().setBaseURL("file:/"+imageDiskPath);
+        }
+        render.layout();
+        render.createPDF(out);
+        render.finishPDF();
+        render = null;
+        return out;
+    }
+
+    public static void main(String[] args) {
+        try {
+//            Map<Object, Object> o=new HashMap<Object, Object>();
+            ModelMap o = new  ModelMap();
+            o.addAttribute("name", "伍欢11");
+//            o.put("name", "伍欢");
+            String path=PdfHelper.getPath();
+            generateToFilePro(path, "demo.ftl", o, "E:/xdemo.pdf");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
