@@ -1,8 +1,17 @@
 package com.uetty.common.tool.core.string;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.function.BiFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EscapeHtmlUtil {
 
@@ -112,6 +121,139 @@ public class EscapeHtmlUtil {
 		text = text.replaceAll("\n+", "\n");
 		return text;
 	}
+	
+	/**
+     * 标签区间块
+     * @Author : Vince
+     * @Date : 2019/6/28 11:29
+     */
+    private static class Block {
+        String openKey; // 标签开始位置键名
+        String closeKey; // 标签结束位置键名（单标签的标签，这一个为null）
+    }
+
+    /**
+     * 查找html代码的指定标签，并根据函数替换内容
+     * @Return : java.lang.String
+     * @Author : Vince
+     * @Date : 2019/6/28 15:50
+     */
+    public static String tagReplace(String html, String tagName, BiFunction<String, String, String> mapper) {
+        Objects.requireNonNull(mapper);
+
+        String openRegex = "(?i)(?s)(<" + tagName + "([ ]+[^ >]+?)*[ ]*[/]?>)";
+        String closeRegex = "</" + tagName + ">";
+
+        List<String> openKeys = new ArrayList<>();
+        List<String> closeKeys = new ArrayList<>();
+        Map<String, String> markMap = new HashMap<>(); // 标记字符串和原始开闭标签字符串的映射
+
+        Pattern op = Pattern.compile(openRegex);
+        Matcher matcher = op.matcher(html);
+        // 将开标签<span style="">的位置替换为标记字符串
+        html = markTag(html, op, matcher, markMap, openKeys);
+
+        Pattern cp = Pattern.compile(closeRegex);
+        matcher = cp.matcher(html);
+        // 将闭标签</span>的位置替换为标记字符串
+        html = markTag(html, cp, matcher, markMap, closeKeys);
+
+        // 根据标记字符串定位html开标签（<span>）的位置，方便后面计算区间
+        int[] openLocates = locateKeys(html, openKeys);
+        // 根据标记字符串定位html闭标签(</span>)的位置，方便后面计算区间
+        int[] closeLocates = locateKeys(html, closeKeys);
+        // 获取完整标签（包含开闭标签）区间
+        List<Block> blocks = loadBlocks(html, openKeys, closeKeys, openLocates, closeLocates);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(html);
+        blocks.forEach(block -> {
+            String headTag = markMap.get(block.openKey);
+            String tailTag = block.closeKey != null ? markMap.get(block.closeKey) : null;
+
+            String fullHtml = sb.toString();
+            int openIdx = fullHtml.indexOf(block.openKey);
+            int closeIdx = tailTag == null ? -1 : fullHtml.indexOf(block.closeKey);
+            String fullTag = headTag + (closeIdx == -1 ? "" : fullHtml.substring(openIdx + block.openKey.length(), closeIdx) + tailTag);
+
+            String apply = mapper.apply(fullTag, headTag);
+
+            fullHtml = fullHtml.substring(0, openIdx) + apply + fullHtml.substring(closeIdx == -1 ? openIdx + block.openKey.length() : closeIdx + block.closeKey.length());
+            sb.delete(0, sb.length());
+            sb.append(fullHtml);
+        });
+        return sb.toString();
+    }
+
+    /**
+     * 根据开闭标签的位置计算装载html标签键名区间块，方便后面按顺序进行replace工作
+     * @Author : Vince
+     * @Date : 2019/6/28 15:45
+     */
+    private static List<Block> loadBlocks(String html, List<String> openKeys, List<String> closeKeys, int[] openLocates, int[] closeLocates) {
+        List<Block> blocks = new ArrayList<>();
+
+        Arrays.sort(openLocates);
+        Arrays.sort(closeLocates);
+
+        List<Integer> openStack = new ArrayList<>();
+        for (int i = 0, k = 0; i < openLocates.length || k < closeLocates.length; ) {
+            boolean nextCloseMark = i >= openLocates.length || (k < closeLocates.length && closeLocates[k] < openLocates[i]); // 下一个标签是close
+
+            if (nextCloseMark) { // 下一个标签是close，如：</span>
+                if (openStack.size() == 0) continue;
+                int ii = openStack.remove(openStack.size() - 1);
+                Block block = new Block();
+                block.openKey = openKeys.get(ii);
+                block.closeKey = closeKeys.get(k);
+                blocks.add(block);
+                k++;
+            } else { // 下一个标签是open，如：<span>
+                openStack.add(i);
+                i++;
+            }
+        }
+        for (int j = openStack.size() - 1; j >= 0; j--) {
+            Block block = new Block();
+            block.openKey = openKeys.get(openStack.get(j));
+            blocks.add(block);
+        }
+        return blocks;
+    }
+
+    /**
+     * 定位键名在文本中的位置
+     * @Return : int[] 位置列表
+     * @Author : Vince
+     * @Date : 2019/6/28 15:48
+     */
+    private static int[] locateKeys(String html, List<String> keys) {
+        int[] locate = new int[keys.size()];
+        for (int i = 0; i < keys.size(); i++) {
+            locate[i] = html.indexOf(keys.get(i));
+        }
+        return locate;
+    }
+
+    /**
+     * 标记html标签的位置
+     * @Return : java.lang.String
+     * @Author : Vince
+     * @Date : 2019/6/28 15:47
+     */
+    private static String markTag(String html, Pattern op, Matcher matcher, Map<String, String> markMap, List<String> keys) {
+        while (matcher.find()) {
+            String group = matcher.group();
+            String markKey = "<mark uuid=\"" + UUID.randomUUID() + "\">";
+            int i = html.indexOf(group);
+            // 将标签的位置替换成自定义的标记
+            html = html.substring(0, i) + markKey + html.substring(i + group.length());
+            matcher = op.matcher(html);
+            markMap.put(markKey, group);
+            keys.add(markKey);
+        }
+        return html;
+    }
 	
 	public static void main(String[] args) {
 //		String str = "<p>1234</p><p>&lt;p&gt;哈哈哈哈&lt;/p&gt;</p><ol><li>&lt;script&gt;个为而非哇个&lt;/script&gt;<br/><span style=\"font-size: 1.5em;\">gwafwfaherdsfgw<br>hea<span style=\"color: rgb(226, 139, 65);\">彩色文<a href=\"http://www.example.com\" target=\"_blank\">wg</a>字gwe</span></span></li></ol><blockquote><p>gawefg</p></blockquote><p><u>gwafewf&nbsp;<br>hg链接文字个为额发</u></p><p><u><br></u></p><table><colgroup><col width=\"24.92581602373887%\"><col width=\"25.024727992087044%\"><col width=\"25.024727992087044%\"><col width=\"25.222551928783382%\"></colgroup><thead><tr><th>table</th><th>blee</th><th>tabl</th><th>tab</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>1</td></tr><tr><td>2</td><td>2</td><td>2</td><td>2</td></tr><tr><td>3</td><td>3</td><td>3</td><td>3<br><br></td></tr></tbody></table><p style=\"text-align: right;\">gwgweewaef</p><p style=\"margin-left: 40px;\"><img alt=\"Image\"><br><br></p><hr><h2>gwefagwe<b>gfaef</b></h2><ul><li>wwgwe</li><li>gwe</li><li>wegwa</li><li>wg<br></li></ul><ol><li>gwefa</li><li>sf<br><br><br></li></ol><p>gwaefof</p><ol><li>1. gwefa</li><li>2. wgwef</li><li>3. dgwe<br><br></li></ol>";
@@ -338,9 +480,19 @@ public class EscapeHtmlUtil {
 				"        </div>\n" + 
 				"    </div>\n" + 
 				"</div>";
+		String copyStr = str;
 		str = escapeHtml(str.replace("\n", " "));
 		str = str.replaceAll("[\\n][\\s]*[\\n]", "\n").replaceAll("[ \t]{3,}", "  ");
 //		str = str.replaceAll("[\\s]", "");
 		System.out.println(str);
+		
+		String tagReplace = tagReplace(copyStr, "table", (fullTag, headTag) -> {
+			return "TABLE DELETED";
+		});
+		System.out.println();
+		System.out.println("replace ====> ");
+		System.out.println();
+		System.out.println(tagReplace);
 	}
+
 }
