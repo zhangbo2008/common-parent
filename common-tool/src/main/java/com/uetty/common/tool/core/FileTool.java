@@ -1,11 +1,13 @@
 package com.uetty.common.tool.core;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.Objects;
 import java.util.UUID;
 
 import com.uetty.common.tool.constant.Global;
@@ -116,4 +118,119 @@ public class FileTool {
 		InputStream stream = url.openStream();
 		return stream;
 	}
+	
+	public static String getFileNamePrefix(String fileName) {
+        if (fileName == null || !fileName.contains(".")) return fileName;
+        int i = (fileName = fileName.trim()).lastIndexOf(".");
+        if (i <= 0) return fileName;
+        return fileName.substring(0, i);
+    }
+
+    public static String getFileNameSuffix(String fileName) {
+        if (fileName == null || !fileName.contains(".")) return null;
+        int i = (fileName = fileName.trim()).lastIndexOf(".");
+        if (i <= 0 && i + 1 >= fileName.length()) return null;
+        return fileName.substring(i + 1).toLowerCase();
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void deleteFiles(File file) {
+        deleteFiles0(file, null);
+    }
+
+    private static void deleteFiles0(File file, File ignore) {
+        if (file.equals(ignore)) {
+            return;
+        }
+        if (file == null || !file.exists()) {
+            return;
+        }
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children == null) children = new File[0];
+            for (File child : children) {
+                deleteFiles0(child, ignore);
+            }
+        }
+        file.delete();
+    }
+
+    public static void copyFiles(File sourceFile, File targetFile, boolean override) throws IOException {
+        copyFiles0(sourceFile, targetFile, override, targetFile);
+    }
+
+    private static void copyFiles0 (File sourceFile, File targetFile, boolean override, File startTargetFile) throws IOException {
+        Objects.requireNonNull(sourceFile);
+        Objects.requireNonNull(targetFile);
+
+        // 忽略源文件里的目标文件目录
+        if (sourceFile.equals(startTargetFile)) {
+            return;
+        }
+
+        if (!sourceFile.isDirectory())  { // 是文件（不是文件夹），直接拷贝
+            FileInputStream fis = new FileInputStream(sourceFile);
+            copySingleFile(fis, targetFile, override);
+            return;
+        }
+
+        // 是文件夹
+        if (targetFile.getAbsolutePath().startsWith(sourceFile.getAbsolutePath())) {
+            // 该种拷贝方式会引起无限循环
+            if (sourceFile.getParentFile() == null) {
+                // 直接拷贝根目录到同一个盘，这种方式拷贝是明确要禁止的
+                throw new IllegalStateException("cannot copy root directory to the same disk");
+            }
+            // 通过拷贝时，忽略源文件里的目标文件目录，可以避免无限循环的方式
+            if (targetFile.exists() && targetFile.listFiles() != null && targetFile.listFiles().length > 0) {
+                throw new IllegalStateException("source directory cannot contain target directory");
+            }
+        }
+
+        if (targetFile.exists()) {
+            if (targetFile.isFile() && override) { // 已存在的文件不是文件夹，如果是覆盖逻辑，则删除原来的文件
+                deleteFiles(targetFile);
+                targetFile.mkdirs();
+            }
+        } else {
+            targetFile.mkdirs();
+        }
+
+        File[] files = sourceFile.listFiles();
+        if (files == null) return;
+        for (File child : files) {
+            if (child.equals(startTargetFile)) continue;
+            String childName = child.getName();
+            File targetChild = new File(targetFile, childName);
+            copyFiles0(child, targetChild, override, startTargetFile);
+        }
+    }
+
+    public static void copySingleFile(InputStream sourceInput, File targetFile, boolean override) throws IOException {
+        Objects.requireNonNull(sourceInput);
+        Objects.requireNonNull(targetFile);
+
+        if (targetFile.exists()) {
+            if (override) deleteFiles(targetFile);
+            else return;
+        } else {
+            File parentFile = targetFile.getParentFile();
+            if (parentFile != null && !parentFile.exists())
+                parentFile.mkdirs();
+        }
+        targetFile.createNewFile();
+        try (InputStream fis = sourceInput;
+             FileOutputStream fos = new FileOutputStream(targetFile)) {
+            byte[] bytes = new byte[1024];
+            int len = 0;
+            while ((len = fis.read(bytes)) != -1) {
+                fos.write(bytes, 0, len);
+            }
+        }
+    }
+
+    public static void moveFiles(File sourceFile, File targetFile, boolean override) throws IOException {
+        copyFiles(sourceFile, targetFile, override);
+        deleteFiles0(sourceFile, targetFile);
+    }
 }
