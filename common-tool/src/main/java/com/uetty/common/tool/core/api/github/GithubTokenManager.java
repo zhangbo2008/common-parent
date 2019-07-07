@@ -157,7 +157,7 @@ public abstract class GithubTokenManager extends AbstractApiTokenManager<GithubT
     }
 
     @Override
-    protected com.uetty.common.tool.core.api.github List<GithubToken> getNewestTokenList();
+    protected abstract List<GithubToken> getNewestTokenList();
 
     @Override
     protected boolean tokenEquals(GithubToken token1, GithubToken token2) {
