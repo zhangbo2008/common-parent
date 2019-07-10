@@ -1,17 +1,16 @@
+# eclipse
 .classpath
 .project
 .settings
 
+# idea
+.idea
+*.iml
+
+# maven
+target
 
 
-**/**.iml
-
-**/.idea/**
-.idea/**
-**/.idea
-
-/target/
-**/target/**
-
-
+# git
 !.gitignore
+
