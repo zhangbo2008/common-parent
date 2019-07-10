@@ -1,16 +1,11 @@
 package com.uetty.common.tool.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.uetty.common.tool.constant.Global;
+
+import java.io.*;
 import java.net.URL;
 import java.util.Objects;
 import java.util.UUID;
-
-import com.uetty.common.tool.constant.Global;
 
 public class FileTool {
 
@@ -133,18 +128,33 @@ public class FileTool {
         return fileName.substring(i + 1).toLowerCase();
     }
 
+	public static boolean fileEquals(File file1, File file2) {
+		if (file1 == file2) return true;
+		if (file1 == null || file2 == null) return false;
+		boolean eq = false;
+		try {
+			eq = file1.getCanonicalFile().equals(file2.getCanonicalFile());
+		} catch (Exception ignore) {}
+		return eq;
+	}
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void deleteFiles(File file) {
         deleteFiles0(file, null);
     }
 
-    private static void deleteFiles0(File file, File ignore) {
-        if (file.equals(ignore)) {
-            return;
-        }
-        if (file == null || !file.exists()) {
-            return;
-        }
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+	private static void deleteFiles0(File file, File ignore) {
+		if (file == null || !file.exists()) {
+			return;
+		}
+		if (fileEquals(file, ignore)) {
+			return;
+		}
+		try {
+			file = file.getCanonicalFile();
+		} catch (IOException ignored) {
+		}
         if (file.isDirectory()) {
             File[] children = file.listFiles();
             if (children == null) children = new File[0];
@@ -160,13 +170,13 @@ public class FileTool {
     }
 
     private static void copyFiles0 (File sourceFile, File targetFile, boolean override, File startTargetFile) throws IOException {
-        Objects.requireNonNull(sourceFile);
-        Objects.requireNonNull(targetFile);
+		sourceFile = Objects.requireNonNull(sourceFile).getCanonicalFile();
+		targetFile = Objects.requireNonNull(targetFile).getCanonicalFile();
 
-        // 忽略源文件里的目标文件目录
-        if (sourceFile.equals(startTargetFile)) {
-            return;
-        }
+		// 忽略源文件里的目标文件目录
+		if (fileEquals(sourceFile, startTargetFile)) {
+			return;
+		}
 
         if (!sourceFile.isDirectory())  { // 是文件（不是文件夹），直接拷贝
             FileInputStream fis = new FileInputStream(sourceFile);
@@ -182,7 +192,8 @@ public class FileTool {
                 throw new IllegalStateException("cannot copy root directory to the same disk");
             }
             // 通过拷贝时，忽略源文件里的目标文件目录，可以避免无限循环的方式
-            if (targetFile.exists() && targetFile.listFiles() != null && targetFile.listFiles().length > 0) {
+			// noinspection ConstantConditions
+			if (targetFile.exists() && targetFile.listFiles() != null && targetFile.listFiles().length > 0) {
                 throw new IllegalStateException("source directory cannot contain target directory");
             }
         }
@@ -190,16 +201,18 @@ public class FileTool {
         if (targetFile.exists()) {
             if (targetFile.isFile() && override) { // 已存在的文件不是文件夹，如果是覆盖逻辑，则删除原来的文件
                 deleteFiles(targetFile);
-                targetFile.mkdirs();
+				// noinspection ResultOfMethodCallIgnored
+				targetFile.mkdirs();
             }
         } else {
-            targetFile.mkdirs();
+			// noinspection ResultOfMethodCallIgnored
+			targetFile.mkdirs();
         }
 
         File[] files = sourceFile.listFiles();
         if (files == null) return;
         for (File child : files) {
-            if (child.equals(startTargetFile)) continue;
+            if (fileEquals(child, startTargetFile)) continue;
             String childName = child.getName();
             File targetChild = new File(targetFile, childName);
             copyFiles0(child, targetChild, override, startTargetFile);
