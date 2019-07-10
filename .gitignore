@@ -1,21 +1,17 @@
-
-/.idea/
-
-# eclipse
 .classpath
 .project
 .settings
 
 
-# idea
-**.iml
+
 **/**.iml
+
 **/.idea/**
 .idea/**
+**/.idea
 
-# maven
 /target/
 **/target/**
 
-# git
+
 !.gitignore
