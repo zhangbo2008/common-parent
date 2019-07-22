@@ -172,6 +172,58 @@ var commonUtil = {
 		str = str.replace(/[ \t]{3,}/gm, "  ");
 		return str;
 	},
+	// 深度合并
+	deepMerge : function (obj1, obj2) {
+		var stack = [];
+		var obj = obj1;
+		stack.push({
+			o1: obj,
+			o2: obj2,
+		});
+		while (stack.length > 0) {
+			var p = stack.shift();
+			var o1 = p.o1, o2 = p.o2;
+			for (var key in o2) {
+				if (o2[key] === undefined) {
+					delete o1[key];
+					continue;
+				}
+				if (o2[key] === null) {
+					o1[key] = null;
+					continue;
+				}
+				if (o1[key] == o2[key]) continue; // 解决掉一些循环引用的情况
+				if ((o1[key] == null) || (o2[key].constructor != Object)) {
+					o1[key] = o2[key];
+					continue;
+				}
+				stack.push({
+					o1: o1[key],
+					o2: o2[key],
+				});
+			}
+
+		}
+		return obj;
+	},
+	// 每毫秒生成10亿个ID的情况下，有0.14%的概率发生重复
+	// 实际每毫秒能生成ID的数量级为350，以此频率生成ID并运行3小时，有0.5%的概率出现重复
+	// 每毫秒生成1个ID的情况下，生成重复ID的概率为0
+	uuid : function () {
+		var t = new Date().getTime().toString(2);
+		t = "00000000" + t;
+		t = t.substring(t.length - 48, t.length);
+		t = "11" + t;
+		var uuid = (10 + parseInt(Math.random() * 22)).toString(32);
+		for (var i = 0; i < 5; i++) {
+			uuid = uuid + parseInt(Math.random() * 32).toString(32);
+		}
+		uuid = uuid + '-';
+		uuid = uuid + parseInt(Math.random() * 32).toString(32);
+		uuid = uuid + parseInt(Math.random() * 32).toString(32);
+		uuid = uuid + parseInt(t, 2).toString(32);
+		return uuid;
+	}
 }
 
 // 扩充Date类方法
@@ -259,4 +311,14 @@ String.prototype.liteReplace = function(reg, str) {
 	return this.replace(reg, function() {
 		return str;
 	});
+}
+
+String.prototype.isNumber = function() {
+	var reg = /^((-?[0-9]+)|(-?[0-9]*\.[0-9]+))$/;
+	return reg.test(this);
+}
+
+String.prototype.isInteger = function() {
+	var reg = /^((-?[0-9]+)|(-?0[xX][0-9a-fA-F]+))$/;
+	return reg.test(this);
 }
