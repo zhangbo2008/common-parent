@@ -14,10 +14,7 @@ import javax.mail.internet.*;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * 不使用spring库
@@ -213,6 +210,8 @@ public class JavaEmailSender {
 
 			// 发送完整消息
 			message.setContent(multipart);
+
+			message.setSentDate(new Date());
 			
 			// 发送消息
 			Transport.send(message);
