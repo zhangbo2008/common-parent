@@ -1,39 +1,16 @@
 package com.uetty.common.tool.core.email;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
-import java.util.List;
-import java.util.Properties;
-
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.activation.FileTypeMap;
-import javax.activation.MimetypesFileTypeMap;
-import javax.mail.Authenticator;
-import javax.mail.BodyPart;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
-
+import com.sun.mail.util.MailSSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.mail.util.MailSSLSocketFactory;
+import javax.activation.*;
+import javax.mail.*;
+import javax.mail.internet.*;
+import java.io.*;
+import java.security.GeneralSecurityException;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * 不使用spring库
@@ -65,6 +42,10 @@ public class JavaEmailSender {
 	 * <p>类似于HTTPS
 	 */
 	private boolean useSSL = false;
+	/**
+	 * 使用STARTTLS
+	 */
+	private boolean useSTARTTLS = false;
 	
 	public JavaEmailSender(String userName, String password, String smtpServer, String smtpPort, boolean useSSL) {
 		this.username = userName;
@@ -117,14 +98,15 @@ public class JavaEmailSender {
 			System.setProperty("mail.smtp.timeout", "25000");
 			
 			properties = new Properties();
-			
+
+
 			// 设置邮件服务器
 			properties.setProperty("mail.smtp.host", this.smtpServer);
 			properties.put("mail.smtp.port", this.smtpPort);
 			properties.put("mail.smtp.socketFactory.port", this.smtpPort);
 			properties.put("mail.smtp.auth", "true");
 			properties.put("-Djava.net.preferIPv4Stack", "true");
-			
+
 			if (this.useSSL) {
 				MailSSLSocketFactory sf = null;
 				try {
@@ -137,6 +119,9 @@ public class JavaEmailSender {
 				properties.put("mail.smtp.ssl.socketFactory", sf);
 			} else {
 				properties.put("mail.smtp.ssl.enable", "false");
+			}
+			if (useSTARTTLS) {
+				properties.put("mail.smtp.starttls.enable", "true");
 			}
 			initialized = true;
 		}
@@ -261,6 +246,14 @@ public class JavaEmailSender {
 		this.useSSL = useSSL;
 	}
 
+	public boolean isUseSTARTTLS() {
+		return useSTARTTLS;
+	}
+
+	public void setUseSTARTTLS(boolean useSTARTTLS) {
+		this.useSTARTTLS = useSTARTTLS;
+	}
+
 	public static class MailSendException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 
@@ -338,4 +331,5 @@ public class JavaEmailSender {
 			this.bytes = bytes;
 		}
 	}
+
 }
