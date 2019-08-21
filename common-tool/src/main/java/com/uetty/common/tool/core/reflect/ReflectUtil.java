@@ -1,5 +1,8 @@
 package com.uetty.common.tool.core.reflect;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -9,9 +12,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 反射工具类
@@ -34,20 +34,20 @@ public class ReflectUtil {
 		try {
 			String getterName = getterName(fieldName);
 			return invokeMethod(obj, getterName);
-		} catch (Exception e) {}
+		} catch (Exception ignore) {}
 		try {
 			Field field = clz.getDeclaredField(fieldName);
 			if (field != null) {
 				field.setAccessible(true);
 				return field.get(obj);
 			}
-		} catch (Exception e) {};
+		} catch (Exception ignore) {};
 		try {
 			Field field = clz.getField(fieldName);
 			if (field != null) {
 				return field.get(obj);
 			}
-		} catch (Exception e) {}
+		} catch (Exception ignore) {}
 		throw new RuntimeException("field[" + fieldName + "] not found in " + obj);
 	}
 	
@@ -58,7 +58,7 @@ public class ReflectUtil {
 			String setterName = setterName(fieldName);
 			invokeMethod(obj, setterName, value);
 			return;
-		} catch (Exception e) {}
+		} catch (Exception ignore) {}
 		
 		try {
 			Field field = clz.getDeclaredField(fieldName);
@@ -67,14 +67,14 @@ public class ReflectUtil {
 				field.set(obj, value);
 				return;
 			}
-		} catch (Exception e) {}
+		} catch (Exception ignore) {}
 		try {
 			Field field = clz.getField(fieldName);
 			if (field != null) {
 				field.set(obj, value);
 				return;
 			}
-		} catch (Exception e) {}
+		} catch (Exception ignore) {}
 		throw new RuntimeException("field[" + fieldName + "] not found in " + obj);
 	}
 	
@@ -97,13 +97,13 @@ public class ReflectUtil {
 				field.setAccessible(true);
 				return field.getType();
 			}
-		} catch (Exception e) {};
+		} catch (Exception ignore) {};
 		try {
 			Field field = clz.getField(fieldName);
 			if (field != null) {
 				return field.getType();
 			}
-		} catch (Exception e) {}
+		} catch (Exception ignore) {}
 		throw new RuntimeException("field[" + fieldName + "] not found in " + obj);
 	}
 	
@@ -117,12 +117,12 @@ public class ReflectUtil {
 				}
 				constructor.setAccessible(true);
 				return constructor.newInstance(params);
-			} catch (Exception e) {}
+			} catch (Exception ignore) {}
 		}
 		if (params.length == 0) {
 			try {
 				return clz.newInstance();
-			} catch (Exception e) {}
+			} catch (Exception ignore) {}
 		}
 		
 		String errorMsg = "constructor(";
@@ -140,7 +140,7 @@ public class ReflectUtil {
 			try {
 				Method method = clz.getMethod(methodName);
 				return method.invoke(obj);
-			} catch (Exception e) {}
+			} catch (Exception ignore) {}
 		} else {
 			// 参数类型绝对匹配的方法查找
 			boolean noNull = true;
@@ -157,7 +157,7 @@ public class ReflectUtil {
 				try {
 					Method method = clz.getMethod(methodName, pclzs); // 参数类型绝对匹配的方法
 					return method.invoke(obj, params);
-				} catch (Exception e) {}
+				} catch (Exception ignore) {}
 			}
 			
 			// 不追求绝对匹配，只要能调用即可
@@ -168,7 +168,7 @@ public class ReflectUtil {
 					Class<?>[] parameterTypes = m.getParameterTypes();
 					if (parameterTypes.length != params.length) continue;
 					return m.invoke(obj, params);
-				} catch (Exception e) {}
+				} catch (Exception ignore) {}
 			}
 		}
 		
@@ -186,7 +186,7 @@ public class ReflectUtil {
 			try {
 				Method method = clz.getMethod(methodName);
 				return method.invoke(null);
-			} catch (Exception e) {}
+			} catch (Exception ignore) {}
 		} else {
 			// 参数类型绝对匹配的方法查找
 			boolean noNull = true;
@@ -203,7 +203,7 @@ public class ReflectUtil {
 				try {
 					Method method = clz.getMethod(methodName, pclzs); // 参数类型绝对匹配的方法
 					return method.invoke(null, params);
-				} catch (Exception e) {}
+				} catch (Exception ignore) {}
 			}
 			
 			// 不追求绝对匹配，只要能调用即可
@@ -214,7 +214,7 @@ public class ReflectUtil {
 					Class<?>[] parameterTypes = m.getParameterTypes();
 					if (parameterTypes.length != params.length) continue;
 					return m.invoke(null, params);
-				} catch (Exception e) {}
+				} catch (Exception ignore) {}
 			}
 		}
 		
@@ -255,7 +255,7 @@ public class ReflectUtil {
 	
 	/**
 	 * 打印类所在的文件路径
-	 * <p> 适合代码多个有包含相同类的jar出现bug时，借用该方法排除
+	 * <p> 适合代码多个有包含相同类的jar出现bug时，借用该方法排除</p>
 	 */
 	public static void printClassPath(Class<?> clz) {
 		String classFilePath = clz.getName();
@@ -301,7 +301,71 @@ public class ReflectUtil {
 		ClassLoader parent = classloader.getParent();
 		printClassLoaderAndPath(parent, clz, classFilePath);
 	}
-	
+
+	private static class Node {
+		Class<?> clz;
+		Node parent;
+		List<Node> children;
+		int cursor = 0;
+	}
+
+	private static void printParent(Class<?> clz) {
+		Node node = getNode(null, clz);
+
+
+		StringBuilder sb = new StringBuilder();
+
+		int c = 0;
+		Node p = node;
+		addPrintStr(sb,c,node.clz);
+		while (p != null) {
+			while (p.children.size() > p.cursor) {
+				p = p.children.get(p.cursor++);
+				c++;
+				addPrintStr(sb,c, p.clz);
+			}
+			p = p.parent;
+			c--;
+		}
+
+		System.out.println(sb);
+	}
+
+	private static void addPrintStr(StringBuilder sb, int c, Class<?> clz) {
+		for (int i = 0; i < c; i++) sb.append("    ");
+		sb.append(clz.getCanonicalName());
+		if (clz.isInterface()) {
+			sb.append("  [I]");
+		}
+		sb.append("\n");
+	}
+
+	private static Node getNode(Node parent, Class<?> clz) {
+		Node node = new Node();
+		node.clz = clz;
+		node.parent = parent;
+		setChildren(node);
+		return node;
+	}
+
+	private static void setChildren(Node node) {
+		node.children = new ArrayList<>();
+		if (node.clz == null) return;
+
+		Class<?> clz = node.clz;
+		Class<?> superclass = clz.getSuperclass();
+		if (superclass != null) {
+			node.children.add(getNode(node, superclass));
+		}
+
+		Class<?>[] interfaces = clz.getInterfaces();
+		if (interfaces != null) {
+			for (Class<?> anInterface : interfaces) {
+				node.children.add(getNode(node, anInterface));
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		printClassPath(ReflectUtil.class);
 

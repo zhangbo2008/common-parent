@@ -1,19 +1,14 @@
 package com.uetty.common.tool.core;
 
+import freemarker.core.ParseException;
+import freemarker.template.*;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import freemarker.core.ParseException;
-import freemarker.template.Configuration;
-import freemarker.template.MalformedTemplateNameException;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
-import freemarker.template.TemplateNotFoundException;
 
 public class FreemarkerEngine {
 	
@@ -53,5 +48,9 @@ public class FreemarkerEngine {
 		cfg.setWrapUncheckedExceptions(true);
 		cfg.setDirectoryForTemplateLoading(tempFileFolder);
 		return cfg;
+	}
+
+	public static void main(String[] args) {
+
 	}
 }

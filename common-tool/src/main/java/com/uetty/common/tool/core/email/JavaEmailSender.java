@@ -184,12 +184,12 @@ public class JavaEmailSender {
 			messageBodyPart.setText(mailInfo.getContent());
 			// 设置文本消息部分
 			multipart.addBodyPart(messageBodyPart);
-			
+
 			addAttach(multipart, mailInfo);
-			
+
 			// 发送完整消息
 			message.setContent(multipart);
-			
+
 			// 发送消息
 			Transport.send(message);
 			
