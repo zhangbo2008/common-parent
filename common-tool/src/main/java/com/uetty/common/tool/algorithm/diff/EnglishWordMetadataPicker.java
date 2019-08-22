@@ -5,14 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 将整个英文单词看作一个数据元元
+ * 采拣英文单词（[0-9a-zA-Z_]+）作为一个不可分割的数据元
+ * <p>适合像代码文件、英文文章一类的有空格等符号作为分割符的文件比较</p>
  * @author : Vince
  * @date: 2019/8/22 15:53
  */
-public class EnglishWordMetadataBuilder implements MetadataBuilder {
+public class EnglishWordMetadataPicker implements MetadataPicker {
 
     @Override
-    public Metadatas build(String str) {
+    public Metadatas doPick(String str) {
         List<String> list = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder();

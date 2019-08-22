@@ -21,7 +21,7 @@ public class LCSDiff {
     private char[] c2;
     private MetadataSpec[] specs1;
     private MetadataSpec[] specs2;
-    private MetadataBuilder metadataBuilder = new CharBaseMetadataBuilder();
+    private MetadataPicker metadataPicker = new CharactMetadataPicker();
 
     private byte[][] cdata;
 
@@ -29,11 +29,11 @@ public class LCSDiff {
         this(str1, str2, null);
     }
 
-    public LCSDiff(String str1, String str2, MetadataBuilder converter) {
+    public LCSDiff(String str1, String str2, MetadataPicker metadataPicker) {
         this.c1 = str1.toCharArray();
         this.c2 = str2.toCharArray();
-        if (converter != null) {
-            this.metadataBuilder = converter;
+        if (metadataPicker != null) {
+            this.metadataPicker = metadataPicker;
         }
         this.specs1 = toSpecArray(str1);
         this.specs2 = toSpecArray(str2);
@@ -47,7 +47,7 @@ public class LCSDiff {
     }
 
     private MetadataSpec[] toSpecArray(String str) {
-        Metadatas metas = metadataBuilder.build(str);
+        Metadatas metas = metadataPicker.doPick(str);
         String[] data = metas.getData();
         MetadataSpec[] specs = new MetadataSpec[data.length];
         int cursor = 0;
@@ -235,9 +235,10 @@ public class LCSDiff {
         String str1 = FileUtils.readFileToString(new File("C:\\Users\\Vince\\Desktop\\FtpUtil.java"), Charset.forName("utf-8"));
         String str2 = FileUtils.readFileToString(new File("C:\\Users\\Vince\\Desktop\\FtpUtil2.java"), Charset.forName("utf-8"));
 
-        // diff算法比较耗内存，代码一般行数较多，使用EnglishWordMetadataBuilder模式
-        // 将英文单词作为一个整体来比较，可以有效降低内存使用率，在代码比较上这种模式diff的准确率也更高
-        LCSDiff lcsDiff = new LCSDiff(str1, str2, new EnglishWordMetadataBuilder());
+        // diff算法比较耗内存，一般代码文件字符数较多，使用EnglishWordMetadataBuilder模式，较少内存消耗
+        // EnglishWordMetadataBuilder模式，将英文单词作为不可分割的数据元来比较，适合代码等相似风格的文件文本比较
+        // CharBaseMetadataBuilder模式，以单个字符作为不可分割的数据元来比较，适合文本字符较少、分隔符号较少时使用，适用场景相对较少点
+        LCSDiff lcsDiff = new LCSDiff(str1, str2, new EnglishWordMetadataPicker());
 //        LCSDiff lcsDiff = new LCSDiff(str1, str2);
         DiffInfo diff = lcsDiff.getDiff();
         List<MetadataSpec> sameSpecs1 = diff.getSameSpecs1();
