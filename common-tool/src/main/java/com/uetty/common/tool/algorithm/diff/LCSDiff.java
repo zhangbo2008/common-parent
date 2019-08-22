@@ -39,7 +39,7 @@ public class LCSDiff {
         this.specs2 = toSpecArray(str2);
     }
 
-    public DiffInfo getDiff() {
+    public DiffInfo seekDiff() {
         calculate();
         DiffInfo diffInfo = lookback();
         this.cdata = null;
@@ -240,7 +240,7 @@ public class LCSDiff {
         // CharBaseMetadataBuilder模式，以单个字符作为不可分割的数据元来比较，适合文本字符较少、分隔符号较少时使用，适用场景相对较少点
         LCSDiff lcsDiff = new LCSDiff(str1, str2, new EnglishWordMetadataPicker());
 //        LCSDiff lcsDiff = new LCSDiff(str1, str2);
-        DiffInfo diff = lcsDiff.getDiff();
+        DiffInfo diff = lcsDiff.seekDiff();
         List<MetadataSpec> sameSpecs1 = diff.getSameSpecs1();
         List<String> collect = sameSpecs1.stream().map(MetadataSpec::getString).collect(Collectors.toList());
         FileUtils.writeLines(new File("C:\\Users\\Vince\\Desktop\\diff.txt"), collect);
