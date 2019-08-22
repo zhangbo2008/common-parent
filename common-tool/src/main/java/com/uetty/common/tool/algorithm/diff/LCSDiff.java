@@ -12,17 +12,18 @@ import java.util.stream.Collectors;
 /**
  * 文本diff算法
  * @author : Vince
- * @date: 2019/8/21 18:55
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class LCSDiff {
 
+    private static final int CDATA_META_LEN = 3;
     private char[] c1;
     private char[] c2;
     private MetadataSpec[] specs1;
     private MetadataSpec[] specs2;
-    MetadataBuilder metadataBuilder = new CharBaseMetadataBuilder();
+    private MetadataBuilder metadataBuilder = new CharBaseMetadataBuilder();
 
-    byte[][] cdata;
+    private byte[][] cdata;
 
     public LCSDiff(String str1, String str2) {
         this(str1, str2, null);
@@ -40,9 +41,9 @@ public class LCSDiff {
 
     public DiffInfo getDiff() {
         calculate();
-        DiffInfo lookback = lookback();
+        DiffInfo diffInfo = lookback();
         this.cdata = null;
-        return lookback;
+        return diffInfo;
     }
 
     private MetadataSpec[] toSpecArray(String str) {
@@ -64,7 +65,7 @@ public class LCSDiff {
     private void calculate() {
         cdata = new byte[specs2.length + 1][];
         for (int i = 0; i < cdata.length; i++) {
-            cdata[i] = new byte[(specs1.length + 1) * 3];
+            cdata[i] = new byte[(specs1.length + 1) * CDATA_META_LEN];
         }
 
         for (int i = 0; i < specs2.length; i++) {
@@ -123,7 +124,6 @@ public class LCSDiff {
             MetadataSpec spec2 = aggregateSpec(specCache2, c2);
             sameSpecs2.add(0,spec2);
         }
-
         DiffInfo diffInfo = new DiffInfo();
         diffInfo.sameSpecs1 = sameSpecs1;
         diffInfo.sameSepcs2 = sameSpecs2;
@@ -162,7 +162,7 @@ public class LCSDiff {
 
     private int getCount(int i, int j) {
         byte[] row = cdata[i];
-        int start = j * 3;
+        int start = j * CDATA_META_LEN;
         int count = 0;
         count += (row[start] & 0xff) << 16;
         count += (row[start + 1] & 0xff) << 8;
@@ -172,7 +172,7 @@ public class LCSDiff {
 
     private void setCount(int i, int j, int data) {
         byte[] row = cdata[i];
-        int start = j * 3;
+        int start = j * CDATA_META_LEN;
         row[start] = (byte) ((data >>> 16) & 0xff);
         row[start + 1] = (byte) ((data >>> 8) & 0xff);
         row[start + 2] = (byte) (data & 0xff);
@@ -209,7 +209,7 @@ public class LCSDiff {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "WeakerAccess"})
     class DiffInfo {
         List<MetadataSpec> sameSpecs1;
         List<MetadataSpec> sameSepcs2;
@@ -238,6 +238,7 @@ public class LCSDiff {
         // diff算法比较耗内存，代码一般行数较多，使用EnglishWordMetadataBuilder模式
         // 将英文单词作为一个整体来比较，可以有效降低内存使用率，在代码比较上这种模式diff的准确率也更高
         LCSDiff lcsDiff = new LCSDiff(str1, str2, new EnglishWordMetadataBuilder());
+//        LCSDiff lcsDiff = new LCSDiff(str1, str2);
         DiffInfo diff = lcsDiff.getDiff();
         List<MetadataSpec> sameSpecs1 = diff.getSameSpecs1();
         List<String> collect = sameSpecs1.stream().map(MetadataSpec::getString).collect(Collectors.toList());
