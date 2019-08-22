@@ -39,11 +39,11 @@ public class LCSDiff {
         this.specs2 = toSpecArray(str2);
     }
 
-    public DiffInfo seekCommon() {
+    public CommonInfo seekCommon() {
         calculate();
-        DiffInfo diffInfo = lookback();
+        CommonInfo commonInfo = lookback();
         this.cdata = null;
-        return diffInfo;
+        return commonInfo;
     }
 
     private MetadataSpec[] toSpecArray(String str) {
@@ -80,7 +80,7 @@ public class LCSDiff {
         }
     }
 
-    private DiffInfo lookback() {
+    private CommonInfo lookback() {
         List<MetadataSpec> sameSpecs1 = new ArrayList<>();
         List<MetadataSpec> sameSpecs2 = new ArrayList<>();
 
@@ -124,11 +124,11 @@ public class LCSDiff {
             MetadataSpec spec2 = aggregateSpec(specCache2, c2);
             sameSpecs2.add(0,spec2);
         }
-        DiffInfo diffInfo = new DiffInfo();
-        diffInfo.sameSpecs1 = sameSpecs1;
-        diffInfo.sameSepcs2 = sameSpecs2;
+        CommonInfo commonInfo = new CommonInfo();
+        commonInfo.specs1 = sameSpecs1;
+        commonInfo.specs2 = sameSpecs2;
 
-        return diffInfo;
+        return commonInfo;
     }
 
     private MetadataSpec aggregateSpec(List<MetadataSpec> list, char[] cs) {
@@ -209,25 +209,29 @@ public class LCSDiff {
         }
     }
 
+    /**
+     * 共同数据
+     * @author : Vince
+     */
     @SuppressWarnings({"unused", "WeakerAccess"})
-    class DiffInfo {
-        List<MetadataSpec> sameSpecs1;
-        List<MetadataSpec> sameSepcs2;
+    class CommonInfo {
+        List<MetadataSpec> specs1;
+        List<MetadataSpec> specs2;
 
-        public List<MetadataSpec> getSameSpecs1() {
-            return sameSpecs1;
+        public List<MetadataSpec> getSpecs1() {
+            return specs1;
         }
 
-        public void setSameSpecs1(List<MetadataSpec> sameSpecs1) {
-            this.sameSpecs1 = sameSpecs1;
+        public void setSpecs1(List<MetadataSpec> specs1) {
+            this.specs1 = specs1;
         }
 
-        public List<MetadataSpec> getSameSepcs2() {
-            return sameSepcs2;
+        public List<MetadataSpec> getSpecs2() {
+            return specs2;
         }
 
-        public void setSameSepcs2(List<MetadataSpec> sameSepcs2) {
-            this.sameSepcs2 = sameSepcs2;
+        public void setSpecs2(List<MetadataSpec> specs2) {
+            this.specs2 = specs2;
         }
     }
 
@@ -240,8 +244,8 @@ public class LCSDiff {
         // CharBaseMetadataBuilder模式，以单个字符作为不可分割的数据元来比较，适合文本字符较少、分隔符号较少时使用，适用场景相对较少点
         LCSDiff lcsDiff = new LCSDiff(str1, str2, new EnglishWordMetadataPicker());
 //        LCSDiff lcsDiff = new LCSDiff(str1, str2);
-        DiffInfo diff = lcsDiff.seekCommon();
-        List<MetadataSpec> sameSpecs1 = diff.getSameSpecs1();
+        CommonInfo diff = lcsDiff.seekCommon();
+        List<MetadataSpec> sameSpecs1 = diff.getSpecs1();
         List<String> collect = sameSpecs1.stream().map(MetadataSpec::getString).collect(Collectors.toList());
         FileUtils.writeLines(new File("C:\\Users\\Vince\\Desktop\\diff.txt"), collect);
     }
