@@ -7,7 +7,7 @@ import java.util.List;
  * @author : Vince
  * @date: 2019/7/31 18:04
  */
-public class MailInfo {
+public class MailMessage {
 
     private String fromName;
     private String title;

@@ -1,6 +1,6 @@
 package com.uetty.common.tool.core.email.v2.converter;
 
-import com.uetty.common.tool.core.email.v2.model.MailInfo;
+import com.uetty.common.tool.core.email.v2.model.MailMessage;
 
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -11,6 +11,6 @@ import javax.mail.Multipart;
  */
 public interface ContentConverter {
 
-    void setContent(Multipart multipart, MailInfo mailInfo) throws MessagingException;
+    void setContent(Multipart multipart, MailMessage mailMessage) throws MessagingException;
 
 }

@@ -8,7 +8,7 @@ import java.util.Map;
  * @author : Vince
  * @date: 2019/8/2 14:00
  */
-public class FtlMailInfo extends MailInfo {
+public class FtlMailMessage extends MailMessage {
 
     // Object 一般为String, File，如果为File则会自动处理为inline文件
     private Map<String, Object> dataModel;

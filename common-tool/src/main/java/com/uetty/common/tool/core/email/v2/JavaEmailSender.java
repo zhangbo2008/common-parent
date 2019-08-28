@@ -3,8 +3,9 @@ package com.uetty.common.tool.core.email.v2;
 import com.sun.mail.util.MailSSLSocketFactory;
 import com.uetty.common.tool.core.email.v2.converter.ContentConverter;
 import com.uetty.common.tool.core.email.v2.converter.FtlContentConverter;
-import com.uetty.common.tool.core.email.v2.model.FtlMailInfo;
-import com.uetty.common.tool.core.email.v2.model.MailInfo;
+import com.uetty.common.tool.core.email.v2.model.FtlMailMessage;
+import com.uetty.common.tool.core.email.v2.model.MailFile;
+import com.uetty.common.tool.core.email.v2.model.MailMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class JavaEmailSender {
 
 	private boolean useSTARTTLS;
 
-	private final Map<Class<? extends MailInfo>, ContentConverter> contentConverterMap = new HashMap<>();
+	private final Map<Class<? extends MailMessage>, ContentConverter> contentConverterMap = new HashMap<>();
 
 	public JavaEmailSender(String userName, String password, String smtpServer, String smtpPort, boolean useSSL) {
 		this(userName, password, smtpServer, smtpPort);
@@ -75,20 +76,20 @@ public class JavaEmailSender {
 		this.smtpServer = smtpServer;
 	}
 	
-	private void addAddresses(MimeMessage message, MailInfo mailInfo) throws MessagingException {
-		List<String> toUsers = mailInfo.getToUsers();
+	private void addAddresses(MimeMessage message, MailMessage mailMessage) throws MessagingException {
+		List<String> toUsers = mailMessage.getToUsers();
 		if (toUsers != null) { // 目标用户
 			for (String user : toUsers) {
 				message.addRecipients(Message.RecipientType.TO,user);
 			}
 		}
-		List<String> ccUsers = mailInfo.getCcUsers();
+		List<String> ccUsers = mailMessage.getCcUsers();
 		if (ccUsers != null) { // 操纵用户
 			for (String user : ccUsers) {
 				message.addRecipients(Message.RecipientType.CC,user);
 			}
 		}
-		List<String> bccUsers = mailInfo.getBccUsers();
+		List<String> bccUsers = mailMessage.getBccUsers();
 		if (bccUsers != null) { // 密送用户
 			for (String user : bccUsers) {
 				message.addRecipients(Message.RecipientType.BCC,user);
@@ -103,7 +104,7 @@ public class JavaEmailSender {
 				return;
 			}
 
-			contentConverterMap.put(FtlMailInfo.class,new FtlContentConverter());
+			contentConverterMap.put(FtlMailMessage.class,new FtlContentConverter());
 
 			// 处理附件文件名不对的问题
 			System.setProperty("mail.mime.splitlongparameters", "false");
@@ -139,8 +140,8 @@ public class JavaEmailSender {
 		}
 	}
  	
-	private void addAttach(Multipart multipart, MailInfo mailInfo) throws MessagingException, UnsupportedEncodingException {
-		List<File> files = mailInfo.getFileAttachments();
+	private void addAttach(Multipart multipart, MailMessage mailMessage) throws MessagingException, UnsupportedEncodingException {
+		List<File> files = mailMessage.getFileAttachments();
 		if (files != null) { // 文件附件
 			for (File file : files) {
 				// 附件部分
@@ -149,30 +150,35 @@ public class JavaEmailSender {
 				// 设置要发送附件的文件路径
 				DataSource source = new FileDataSource(file);
 				messageBodyPart.setDataHandler(new DataHandler(source));
-				// messageBodyPart.setFileName(filename);
+				String fileName;
+				if (file instanceof MailFile) { //
+					fileName = ((MailFile) file).getFileName();
+				} else {
+					fileName = file.getName();
+				}
 				// 处理附件名称中文（附带文件路径）乱码问题
-				String encodeText = MimeUtility.encodeText(file.getName());
+				String encodeText = MimeUtility.encodeText(fileName);
 				messageBodyPart.setFileName(encodeText);
 				multipart.addBodyPart(messageBodyPart);
 			}
 		}
 	}
 
-	private void setContent(Multipart multipart, MailInfo mailInfo) throws MessagingException {
-		if (mailInfo == null) return;
-		ContentConverter contentConverter = contentConverterMap.get(mailInfo.getClass());
+	private void setContent(Multipart multipart, MailMessage mailMessage) throws MessagingException {
+		if (mailMessage == null) return;
+		ContentConverter contentConverter = contentConverterMap.get(mailMessage.getClass());
 		if (contentConverter != null) {
-			contentConverter.setContent(multipart, mailInfo);
+			contentConverter.setContent(multipart, mailMessage);
 			return;
 		}
 
 		// 创建消息部分
 		BodyPart messageBodyPart = new MimeBodyPart();
 
-		if (mailInfo.getHtmlType()) {
-			messageBodyPart.setContent(mailInfo.getContent(), "text/html;charset=utf-8");
+		if (mailMessage.getHtmlType()) {
+			messageBodyPart.setContent(mailMessage.getContent(), "text/html;charset=utf-8");
 		} else {
-			messageBodyPart.setText(mailInfo.getContent());
+			messageBodyPart.setText(mailMessage.getContent());
 		}
 
 		// 设置文本消息部分
@@ -180,7 +186,7 @@ public class JavaEmailSender {
 	}
 
 
-	public void sendMail(MailInfo mailInfo) {
+	public void sendMail(MailMessage mailMessage) {
 		try {
 			init();
 			// 获取默认session对象
@@ -193,20 +199,20 @@ public class JavaEmailSender {
 			// 创建默认的 MimeMessage 对象
 			MimeMessage message = new MimeMessage(session);
 			// Set From: 头部头字段
-			message.setFrom(new InternetAddress(this.username, mailInfo.getFromName()));
+			message.setFrom(new InternetAddress(this.username, mailMessage.getFromName()));
 			// Set Subject: 主题文字
-			message.setSubject(mailInfo.getTitle());
+			message.setSubject(mailMessage.getTitle());
 			// 接收人
-			addAddresses(message, mailInfo);
+			addAddresses(message, mailMessage);
 
 			// 创建多重消息
 			Multipart multipart = new MimeMultipart();
 
 			// 附件
-			addAttach(multipart, mailInfo);
+			addAttach(multipart, mailMessage);
 
 			// 文本消息部分
-			setContent(multipart,mailInfo);
+			setContent(multipart, mailMessage);
 
 			// 发送完整消息
 			message.setContent(multipart);
@@ -277,11 +283,51 @@ public class JavaEmailSender {
 		this.useSTARTTLS = useSTARTTLS;
 	}
 
-	public void addContentConverter(Class<? extends MailInfo> infoClz, ContentConverter converter) {
+	public void addContentConverter(Class<? extends MailMessage> infoClz, ContentConverter converter) {
 		this.contentConverterMap.put(infoClz, converter);
 	}
 
-	public ContentConverter removeContentConverter(Class<? extends MailInfo> infoClz) {
+	public ContentConverter removeContentConverter(Class<? extends MailMessage> infoClz) {
 		return this.contentConverterMap.remove(infoClz);
+	}
+
+	public static void main(String[] args) {
+//		try {
+//			System.out.println(URLDecoder.decode("valid_user_address%40company.com%0D%0ABCC%3Ame%40me.com%0D%0A", "utf-8"));
+//			System.out.println(URLDecoder.decode("valid_user_address@company.com%0D%0ABCC%3Ame%40me.com%0D%0A", "utf-8"));
+//			System.out.println(URLDecoder.decode("From:sender@domain.com%0ACc:recipient@domain.com%0ABcc:recipient1@domain.com", "utf-8"));
+//		} catch (UnsupportedEncodingException e) {
+//			e.printStackTrace();
+//		}
+		String userName = System.getProperty("mail.smtp.username");
+		String password = System.getProperty("mail.smtp.password");
+		String smtpServer = System.getProperty("mail.smtp.host");
+		String smtpPort = System.getProperty("mail.smtp.port", "465");
+		boolean useSSL = "true".equalsIgnoreCase(System.getProperty("mail.smtp.ssl"));
+		boolean useSTARTTLS = "true".equalsIgnoreCase(System.getProperty("mail.smtp.starttls"));
+
+		JavaEmailSender emailSender = new JavaEmailSender(userName, password, smtpServer, smtpPort, useSSL, useSTARTTLS);
+
+		MailMessage mailMessage = new MailMessage();
+		mailMessage.setTitle("测试邮件");
+		mailMessage.setFromName("Test Mail User Name");
+
+		List<String> test = new ArrayList<>();
+		test.add("wangYang@uetty.com");
+		mailMessage.setToUsers(test);
+		List<String> cc = new ArrayList<>();
+		cc.add("JinYuan@uEtty.com");
+		mailMessage.setCcUsers(cc);
+
+		List<File> attachments = new ArrayList<>();
+		MailFile mailFile2 = new MailFile("E:\\data\\i1.png");
+		mailFile2.setFileName("rename.png");
+		attachments.add(mailFile2);
+		mailMessage.setFileAttachments(attachments);
+
+		mailMessage.setContent("test %0A%0Atest2");
+		mailMessage.setHtmlType(false);
+
+		emailSender.sendMail(mailMessage);
 	}
 }

@@ -1,5 +1,8 @@
 package com.uetty.common.tool.core.string;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+
 public class UnicodeCoder {
 
 	public static String encode(String str) {
@@ -74,8 +77,13 @@ public class UnicodeCoder {
 		}
 	}
 	
-	public static void main(String[] args) throws UnsupportDecodeException {
+	public static void main(String[] args) throws UnsupportDecodeException, UnsupportedEncodingException {
 		String str = "\\\\\u901a\\u7528\\u6a21\\u677f\n";
 		System.out.println(decode(str));
+
+		String filePath = "C:\\Users\\Vince\\Desktop\\diff.txt\u0000后面的字符被截断了把";
+		File file = new File(filePath);
+		System.out.println(file.exists());
+		System.out.println(file.getAbsolutePath());
 	}
 }

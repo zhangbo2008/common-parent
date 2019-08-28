@@ -3,8 +3,8 @@ package com.uetty.common.tool.core.email.v2.converter;
 import com.uetty.common.tool.core.email.v2.FreemarkerEngine;
 import com.uetty.common.tool.core.email.v2.JavaEmailSender;
 import com.uetty.common.tool.core.email.v2.ftl.FtlEnum;
-import com.uetty.common.tool.core.email.v2.model.FtlMailInfo;
-import com.uetty.common.tool.core.email.v2.model.MailInfo;
+import com.uetty.common.tool.core.email.v2.model.FtlMailMessage;
+import com.uetty.common.tool.core.email.v2.model.MailMessage;
 import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +32,8 @@ public class FtlContentConverter implements ContentConverter {
 
     private Logger LOG = LoggerFactory.getLogger(FtlContentConverter.class);
 
-    private boolean accept(MailInfo mailInfo) {
-        return mailInfo instanceof FtlMailInfo;
+    private boolean accept(MailMessage mailMessage) {
+        return mailMessage instanceof FtlMailMessage;
     }
 
     private void resolveInlineFile(Multipart multipart, Map<String, Object> dataModel) {
@@ -66,7 +66,7 @@ public class FtlContentConverter implements ContentConverter {
         });
     }
 
-    private String getContent(FtlMailInfo ftlMailInfo) throws IOException, TemplateException {
+    private String getContent(FtlMailMessage ftlMailInfo) throws IOException, TemplateException {
         FtlEnum ftlEnum = ftlMailInfo.getFtlEnum();
 
         File file = new File(ftlEnum.getFilePath());
@@ -76,10 +76,10 @@ public class FtlContentConverter implements ContentConverter {
     }
     
     @Override
-    public void setContent(Multipart multipart, MailInfo mailInfo) throws MessagingException {
-        if (!accept(mailInfo)) return;
+    public void setContent(Multipart multipart, MailMessage mailMessage) throws MessagingException {
+        if (!accept(mailMessage)) return;
 
-        FtlMailInfo ftlMailInfo = (FtlMailInfo) mailInfo;
+        FtlMailMessage ftlMailInfo = (FtlMailMessage) mailMessage;
         Map<String, Object> dataModel = ftlMailInfo.getDataModel();
         resolveInlineFile(multipart, dataModel);
 
