@@ -4,24 +4,27 @@ import com.uetty.common.tool.constant.Global;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@SuppressWarnings({"ResultOfMethodCallIgnored", "WeakerAccess", "unused"})
 public class FileTool {
 
 	private static final String tmpFileDir = Global.TMP_FILE_DIR.getValue();
 
 	/**
 	 * 随机产生临时文件路径
-	 * @param extName
-	 * @return
+	 * @param extName 扩展名
+	 * @return 绝对路径
 	 */
 	public static String randomFilePathByExtName(String extName) {
 		File directory = new File(tmpFileDir);
 		if (!directory.exists()) {
 			directory.mkdirs();
 		}
-		File f = null;
+		File f;
 		int randomTimes = 0;
 		do {
 			if (randomTimes > 200) {
@@ -42,7 +45,7 @@ public class FileTool {
 	 * 输入流的数据输出到输出流
 	 */
 	public static void writeFromInputStream(OutputStream os, InputStream is) throws IOException {
-		int len = -1;
+		int len;
 		byte[] buffer = new byte[1024];
 		try {
 			while ((len = is.read(buffer)) != -1) {
@@ -61,33 +64,40 @@ public class FileTool {
 			file.getParentFile().mkdirs();
 			file.createNewFile();
 		}
-		FileOutputStream fis = null;
-		try {
-			fis = new FileOutputStream(file, true);
+		try (FileOutputStream fis = new FileOutputStream(file, true)) {
 			fis.write(string.getBytes());
 			fis.write("\n".getBytes());
-			
-		} finally {
-			if (fis != null) {
-				fis.close();
-			}
+
 		}
 	}
 	
 	public static boolean isAbsolutePath (String path) {
 		if (path.startsWith("/")) return true;
 		if (isWinOS()) {// windows
-			if (path.contains(":") || path.startsWith("\\")) {
-				return true;
-			}
+			return path.contains(":") || path.startsWith("\\");
 		} else {// not windows, just unix compatible
-			if (path.startsWith("~")) {
-				return true;
+			return path.startsWith("~");
+		}
+	}
+
+	public static List<String> readLines(File file) throws IOException {
+		try (FileInputStream fis = new FileInputStream(file)) {
+			return readLines(fis);
+		}
+	}
+
+	public static List<String> readLines(InputStream inputStream) throws IOException {
+		List<String> lines = new ArrayList<>();
+		try (InputStreamReader reader = new InputStreamReader(inputStream);
+			 BufferedReader br = new BufferedReader(reader)) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				lines.add(line);
 			}
 		}
-		return false;
+		return lines;
 	}
-	
+
 	/**
 	 * 是否windows系统
 	 */
@@ -110,8 +120,7 @@ public class FileTool {
 		}
 		String urlPath = "jar:file:" + jarPath + "!" + filePath;
 		URL url = new URL(urlPath);
-		InputStream stream = url.openStream();
-		return stream;
+		return url.openStream();
 	}
 	
 	public static String getFileNamePrefix(String fileName) {
@@ -138,7 +147,6 @@ public class FileTool {
 		return eq;
 	}
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void deleteFiles(File file) {
         deleteFiles0(file, null);
     }
@@ -235,7 +243,7 @@ public class FileTool {
         try (InputStream fis = sourceInput;
              FileOutputStream fos = new FileOutputStream(targetFile)) {
             byte[] bytes = new byte[1024];
-            int len = 0;
+            int len;
             while ((len = fis.read(bytes)) != -1) {
                 fos.write(bytes, 0, len);
             }
