@@ -3,22 +3,20 @@ package org.xbill.DNS;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
- * 参考Lookup{@link org.xbill.DNS.Lookup}类，去掉Cache
+ * 改造Lookup{@link org.xbill.DNS.Lookup}类，去掉Cache，在不需要cache的业务下留着cache只会消耗性能
  * @author : Vince
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class UncachedLookup {
+public class NoCacheLookup {
 
     private Resolver resolver;
     private static final Name[] noAliases = new Name[0];
 
     private boolean verbose = Options.check("verbose");
-    private static final int DEFAULT_TYPE = Type.ANY;
+    private static final int DEFAULT_TYPE = Type.A;
 
     private int dclass = 1;
     private int type;
@@ -56,8 +54,23 @@ public class UncachedLookup {
         this.referral = false;
     }
 
+    @SuppressWarnings("Duplicates")
+    private static Set<String> getDefaultDnsServers() {
+        String[] servers = ResolverConfig.getCurrentConfig().servers();
+        Set<String> list = new HashSet<>();
+        if (servers != null) {
+            for (String server : servers) {
+                if (server != null) {
+                    list.add(server.toLowerCase());
+                }
+            }
+        }
+        return list;
+    }
+
     private Resolver getDefaultResolver() throws UnknownHostException {
-        return new SimpleResolver();
+        Set<String> defaultDnsServers = getDefaultDnsServers();
+        return new DynamicRoutingResolver(new ArrayList<>(defaultDnsServers));
     }
 
     public Resolver getResolver() throws UnknownHostException {
@@ -67,8 +80,12 @@ public class UncachedLookup {
         return this.resolver;
     }
 
+    public NoCacheLookup(String[] dnsServers) throws UnknownHostException {
+        this(DEFAULT_TYPE, new DynamicRoutingResolver(new ArrayList<>(Arrays.asList(dnsServers))));
+    }
+
     @SuppressWarnings("WeakerAccess")
-    public UncachedLookup(int type, Resolver resolver) {
+    public NoCacheLookup(int type, Resolver resolver) {
         Type.check(type);
         if (!Type.isRR(type) && type != 255) {
             throw new IllegalArgumentException("Cannot query for meta-types other than ANY");
@@ -78,12 +95,12 @@ public class UncachedLookup {
         this.resolver = resolver;
     }
 
-    public UncachedLookup(Resolver resolver) {
+    public NoCacheLookup(Resolver resolver) {
         this(DEFAULT_TYPE, resolver);
     }
 
     @SuppressWarnings("unused")
-    public UncachedLookup() {
+    public NoCacheLookup() {
         this(DEFAULT_TYPE, null);
     }
 
@@ -313,9 +330,14 @@ public class UncachedLookup {
         this.lookup(tname);
     }
 
-    public Record[] run(String domain) throws TextParseException {
-        Name name = Name.fromString(domain);
-        return run(name,DEFAULT_TYPE);
+    public Record[] run(String domain) {
+        try {
+            Name name = Name.fromString(domain);
+            return run(name,DEFAULT_TYPE);
+        } catch (TextParseException e) {
+            System.out.println(domain);
+            return new Record[0];
+        }
     }
 
     public Record[] run(Name name, int type) {
