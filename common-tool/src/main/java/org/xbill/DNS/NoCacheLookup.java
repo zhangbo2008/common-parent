@@ -331,11 +331,14 @@ public class NoCacheLookup {
     }
 
     public Record[] run(String domain) {
+        return run(domain,DEFAULT_TYPE);
+    }
+
+    public Record[] run(String domain, int type) {
         try {
             Name name = Name.fromString(domain);
-            return run(name,DEFAULT_TYPE);
+            return run(name,type);
         } catch (TextParseException e) {
-            System.out.println(domain);
             return new Record[0];
         }
     }
