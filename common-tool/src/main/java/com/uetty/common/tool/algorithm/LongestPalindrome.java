@@ -1,6 +1,7 @@
 package com.uetty.common.tool.algorithm;
 
 /**
+ * 最长回文串 Manacher法
  * @author Vince
  * @date 2019/9/27 11:20
  */
@@ -24,7 +25,7 @@ public class LongestPalindrome {
         int maxLenP = 1;
         for (int i = 2; i + lens[maxLenP] < chars.length; i++) {
             if (i < maxRightP + lens[maxRightP]) {
-                // 复用对称部分
+                // 复用对称部分的是否回文串结果
                 if (lens[2 * maxRightP - i] < maxRightP + lens[maxRightP] - i) {
                     lens[i] = lens[2 * maxRightP - i];
                     continue;

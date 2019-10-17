@@ -7,7 +7,7 @@ package com.uetty.common.tool;
 public class App {
 	
 	public static void main(String[] args) {
-		
+
 	}
-	
+
 }
