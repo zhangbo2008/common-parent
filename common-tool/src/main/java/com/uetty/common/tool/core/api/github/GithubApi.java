@@ -2,11 +2,7 @@ package com.uetty.common.tool.core.api.github;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.uetty.common.tool.core.api.github.GithubSearchBaseVo;
-import com.uetty.common.tool.core.api.github.GithubSearchCodeVo;
-import com.uetty.common.tool.core.api.github.GithubSearchContentVo;
-import com.uetty.common.tool.core.api.github.GithubToken;
-import com.uetty.common.tool.core.http.HttpClientUtil;
+import com.uetty.common.tool.core.net.HttpClientUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
