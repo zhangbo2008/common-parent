@@ -1,4 +1,6 @@
-package org.xbill.DNS;
+package com.uetty.common.tool.core.net.dns;
+
+import org.xbill.DNS.*;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -6,8 +8,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 
 /**
- * 改造Lookup{@link org.xbill.DNS.Lookup}类，去掉Cache，在不需要cache的业务下留着cache只会消耗性能
- * @author : Vince
+ * 改造Lookup{@link Lookup}类，去掉Cache，在不需要cache的业务下留着cache只会消耗性能
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class NoCacheLookup {
@@ -70,7 +71,7 @@ public class NoCacheLookup {
 
     private Resolver getDefaultResolver() throws UnknownHostException {
         Set<String> defaultDnsServers = getDefaultDnsServers();
-        return new DynamicRoutingResolver(new ArrayList<>(defaultDnsServers));
+        return new org.xbill.DNS.DynamicRoutingResolver(new ArrayList<>(defaultDnsServers));
     }
 
     public Resolver getResolver() throws UnknownHostException {
@@ -118,10 +119,6 @@ public class NoCacheLookup {
             this.resolver = resolver;
         }
     }
-//    @SuppressWarnings("unused")
-//    public NoCacheLookup(String name) throws TextParseException, UnknownHostException {
-//        this(Name.fromString(name), 1, null);
-//    }
 
     private void follow(Name name, Name oldname) {
         this.badresponse = false;
@@ -331,7 +328,7 @@ public class NoCacheLookup {
     }
 
     public Record[] run(String domain) {
-        return run(domain,DEFAULT_TYPE);
+        return run(domain, DEFAULT_TYPE);
     }
 
     public Record[] run(String domain, int type) {

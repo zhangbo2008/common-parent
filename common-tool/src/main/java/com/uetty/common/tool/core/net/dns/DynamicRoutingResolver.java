@@ -1,4 +1,8 @@
-package org.xbill.DNS;
+package com.uetty.common.tool.core.net.dns;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xbill.DNS.*;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -11,12 +15,11 @@ import java.util.stream.Collectors;
 
 /**
  * 基于近期响应统计的dns解析处理器的动态选择
- * dynamic routing resolver for dns resolver based on response statistics in recent periods
- * @author : Vince
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings("unused")
 public class DynamicRoutingResolver implements Resolver {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DynamicRoutingResolver.class);
     private final Object LOCKER = new Object();
 
     private volatile List<IndexedResolver> resolvers = new ArrayList<>();
@@ -27,6 +30,7 @@ public class DynamicRoutingResolver implements Resolver {
     private static final int WEIGHT_SERVER_AVERAGE = 10; // 平均每个服务器的权重
     private static final int WEIGHT_BASE = 1; // 基础权重
 
+    @SuppressWarnings("WeakerAccess")
     public DynamicRoutingResolver(List<String> servers) throws UnknownHostException {
 
         initResolvers(servers);
@@ -40,6 +44,7 @@ public class DynamicRoutingResolver implements Resolver {
                 .distinct()
                 .collect(Collectors.toList());
         if (servers.size() == 0) throw new RuntimeException("server size is 0");
+        LOG.debug("initResolvers ===> {}", servers);
 
         this.resolvers.clear();
         weights = new int[servers.size()];
@@ -72,7 +77,9 @@ public class DynamicRoutingResolver implements Resolver {
             }
             this.offset = (this.offset + 1) % this.resolvers.size();
             if (this.offset == 0) { // 需要重新分配权重了
+                LOG.debug("ajudge resolver dns server weight");
                 ajudgeWeight();
+                LOG.debug("resolver dns server lookup count statistics -> \n {}", this.resolvers);
             }
             this.offsetUpdateTime = System.currentTimeMillis();
         }
@@ -236,16 +243,20 @@ public class DynamicRoutingResolver implements Resolver {
                     "\tserver=" + dnsServer +
                     ",\n\tstatistic={\n\t\tcount=" + statisticCount +
                     ",\n\t\tweight=" + statisticWeight +
-                    ",\n\t\taverage=" + ((float)statisticCount.get() / statisticWeight.get()) +
+                    ",\n\t\taverage=" + ((float)statisticCount.get() * 1000 / UNIT_WEIGHT_TIME / statisticWeight.get()) +
+                    " / Sec" +
                     "}\n}";
         }
     }
 
+    /**
+     * 打印统计信息
+     */
     public void printStatistics() {
         List<IndexedResolver> list = new ArrayList<>(this.resolvers)
                 .stream()
                 .sorted((ir1, ir2) -> (int) (ir2.getStatisticCount().get() - ir1.getStatisticCount().get()))
                 .collect(Collectors.toList());
-        System.out.println(list);
+        LOG.debug(list.toString());
     }
 }
