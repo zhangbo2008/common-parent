@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 public class HtmlUtil {
 
-	static Map<String, String> ESCAPE_HTML_REPLACE_MAP = null;
+    static Map<String, String> ESCAPE_HTML_REPLACE_MAP = null;
     static Map<String, String> ESCAPE_SCRIPT_REPLACE_MAP = null;
     private static void initEscapeHTMLMapping() {
         if (ESCAPE_HTML_REPLACE_MAP != null) return;
@@ -184,8 +184,8 @@ public class HtmlUtil {
         StringBuilder sb = new StringBuilder();
         sb.append(html);
         blocks.forEach(block -> {
-            String headTag = markMap.get(block.openKey);
-            String tailTag = block.closeKey != null ? markMap.get(block.closeKey) : null;
+            String headTag = markMap.remove(block.openKey);
+            String tailTag = block.closeKey != null ? markMap.remove(block.closeKey) : null;
 
             String fullHtml = sb.toString();
             int openIdx = fullHtml.indexOf(block.openKey);
@@ -198,7 +198,14 @@ public class HtmlUtil {
             sb.delete(0, sb.length());
             sb.append(fullHtml);
         });
-        return sb.toString();
+        String text = sb.toString();
+        if (markMap.size() > 0) {
+            Set<Map.Entry<String, String>> entries = markMap.entrySet();
+            for (Map.Entry<String, String> entry : entries) {
+                text = text.replace(entry.getKey(), entry.getValue());
+            }
+        }
+        return text;
     }
 
     /**
