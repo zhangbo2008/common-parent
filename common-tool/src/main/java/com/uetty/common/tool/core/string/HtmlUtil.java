@@ -216,12 +216,13 @@ public class HtmlUtil {
             boolean nextCloseMark = i >= openLocates.length || (k < closeLocates.length && closeLocates[k] < openLocates[i]); // 下一个标签是close
 
             if (nextCloseMark) { // 下一个标签是close，如：</span>
-                if (openStack.size() == 0) continue;
-                int ii = openStack.remove(openStack.size() - 1);
-                Block block = new Block();
-                block.openKey = openKeys.get(ii);
-                block.closeKey = closeKeys.get(k);
-                blocks.add(block);
+                if (openStack.size() > 0) {
+                    int ii = openStack.remove(openStack.size() - 1);
+                    Block block = new Block();
+                    block.openKey = openKeys.get(ii);
+                    block.closeKey = closeKeys.get(k);
+                    blocks.add(block);
+		}
                 k++;
             } else { // 下一个标签是open，如：<span>
                 openStack.add(i);
