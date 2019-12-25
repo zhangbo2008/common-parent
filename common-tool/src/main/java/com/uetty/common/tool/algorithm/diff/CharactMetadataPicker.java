@@ -16,4 +16,9 @@ public class CharactMetadataPicker implements MetadataPicker {
         }
         return metas;
     }
+    public static void main(String[] args) {
+System.out.println("3333333");
+    }
 }
+
+
