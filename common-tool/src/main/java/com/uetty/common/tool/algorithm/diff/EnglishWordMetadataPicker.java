@@ -12,11 +12,12 @@ import java.util.List;
  */
 public class EnglishWordMetadataPicker implements MetadataPicker {
 
-    @Override
+    @Override  //pick函数把,一个str扔给一个数据源.然后返回这个数据源.也就是str--数据元
+    //的转化函数.
     public Metadatas doPick(String str) {
         List<String> list = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(); //这个处理string速度快.
         char[] chars = str.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
@@ -43,5 +44,9 @@ public class EnglishWordMetadataPicker implements MetadataPicker {
         if (c >= '0' && c <= '9') return true;
         if (c == '_') return true;
         return false;
+    }
+
+    public static void main(String[] args) {
+        new EnglishWordMetadataPicker().doPick("dsfadsfasdf_asdf 3423423 34234 324");
     }
 }

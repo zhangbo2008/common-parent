@@ -8,7 +8,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
+//整个diff算法的核心就是这个.
 /**
  * 文本diff算法
  * @author : Vince
@@ -34,12 +34,12 @@ public class LCSDiff {
         this.c2 = str2.toCharArray();
         if (metadataPicker != null) {
             this.metadataPicker = metadataPicker;
-        }
+        } //specs1 记录str1 里面切分的头尾index
         this.specs1 = toSpecArray(str1);
         this.specs2 = toSpecArray(str2);
     }
 
-    public CommonInfo seekCommon() {
+    public CommonInfo seekCommon() {  //返回公共信息.
         calculate();
         CommonInfo commonInfo = lookback();
         this.cdata = null;
@@ -65,16 +65,20 @@ public class LCSDiff {
     private void calculate() {
         cdata = new byte[specs2.length + 1][];
         for (int i = 0; i < cdata.length; i++) {
-            cdata[i] = new byte[(specs1.length + 1) * CDATA_META_LEN];
+            cdata[i] = new byte[(specs1.length + 1) * CDATA_META_LEN];  //utf-8打开文件所以len是3
         }
-
+//英文和数字看成一个单元,跟中文切开.
         for (int i = 0; i < specs2.length; i++) {
             MetadataSpec spec2 = specs2[i];
             for (int j = 0; j < specs1.length; j++) {
-                MetadataSpec spec1 = specs1[j];
+                MetadataSpec spec1 = specs1[j];//判断当前的字符 spec1,spec2之间的差别.
                 boolean equals = metaEquals(spec1, spec2);
 
                 int count = equals ? (getCount(i, j) + 1) : (Math.max(getCount(i,j + 1), getCount(i + 1, j)));
+                if (count!=0)
+                    System.out.println("223333");
+
+
                 setCount(i + 1, j + 1, count);
             }
         }
@@ -151,10 +155,10 @@ public class LCSDiff {
         int endSpec1 = spec1.end;
         int startSpec2 = spec2.start;
         int endSpec2 = spec2.end;
-        if (endSpec1 - startSpec1 != endSpec2 - startSpec2) return false;
+        if (endSpec1 - startSpec1 != endSpec2 - startSpec2) return false; //如果长度不同就表示不同.
 
         for (int i = 0; i + startSpec1 < endSpec1; i++) {
-            if (c1[i + startSpec1] != c2[i + startSpec2]) return false;
+            if (c1[i + startSpec1] != c2[i + startSpec2]) return false;//如果对应位置的字符有一个不同就是不同.
         }
 
         return true;
@@ -169,11 +173,11 @@ public class LCSDiff {
         count += (row[start + 2] & 0xff);
         return count;
     }
-
+//在计算机里面数值都是按照补码放置的,从1变-1,首位不变,其他位置取反,后加1. 所以-1 补码是 1111  1111 1111  1111 1111  1111 1111  1111  >>>1 之后 表示无符号右移一位,高位补0,高位也就是最左边的  所以是 0,然后后面全是1  ,没有<<<这个运算.
     private void setCount(int i, int j, int data) {
-        byte[] row = cdata[i];
+        byte[] row = cdata[i];   //等于这个函数把数据写到了cdata 里面.
         int start = j * CDATA_META_LEN;
-        row[start] = (byte) ((data >>> 16) & 0xff);
+        row[start] = (byte) ((data >>> 16) & 0xff);  //&0xff表示取前8位.    >>>表示缩小.
         row[start + 1] = (byte) ((data >>> 8) & 0xff);
         row[start + 2] = (byte) (data & 0xff);
     }
@@ -236,17 +240,17 @@ public class LCSDiff {
     }
 
     public static void main(String[] args) throws IOException {
-        String str1 = FileUtils.readFileToString(new File("C:\\Users\\Vince\\Desktop\\re.txt"), Charset.forName("utf-8"));
-        String str2 = FileUtils.readFileToString(new File("C:\\Users\\Vince\\Desktop\\rr.txt"), Charset.forName("utf-8"));
-
+        String str1 = FileUtils.readFileToString(new File("1.txt"), Charset.forName("utf-8"));
+        String str2 = FileUtils.readFileToString(new File("2.txt"), Charset.forName("utf-8"));
+//java里面的默认路径是项目根目录的路径.
         // diff算法比较耗内存，一般代码文件字符数较多，使用EnglishWordMetadataBuilder模式，较少内存消耗
         // EnglishWordMetadataBuilder模式，将英文单词作为不可分割的数据元来比较，适合代码等相似风格的文件文本比较
         // CharBaseMetadataBuilder模式，以单个字符作为不可分割的数据元来比较，适合文本字符较少、分隔符号较少时使用，适用场景相对较少点
         LCSDiff lcsDiff = new LCSDiff(str1, str2, new EnglishWordMetadataPicker());
-//        LCSDiff lcsDiff = new LCSDiff(str1, str2);
+//        LCSDiff lcsDiff = new LCSDiff(str1, str2); //EnglishWordMetadataPicker 是空格切分器
         CommonInfo diff = lcsDiff.seekCommon();
         List<MetadataSpec> sameSpecs1 = diff.getSpecs1();
         List<String> collect = sameSpecs1.stream().map(MetadataSpec::getString).collect(Collectors.toList());
-        FileUtils.writeLines(new File("C:\\Users\\Vince\\Desktop\\diff.txt"), collect);
+        FileUtils.writeLines(new File("diff.txt"), collect);
     }
 }

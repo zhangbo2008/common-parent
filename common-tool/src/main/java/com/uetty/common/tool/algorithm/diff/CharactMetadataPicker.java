@@ -9,7 +9,8 @@ package com.uetty.common.tool.algorithm.diff;
 public class CharactMetadataPicker implements MetadataPicker {
     @Override
     public Metadatas doPick(String str) {
-        Metadatas metas = new Metadatas();
+        Metadatas metas = new Metadatas();//字符串里面每一个字符都当成一个元,
+//        Metadatas 用于存储所有的数据元
         metas.setData(new String[str.length()]);
         for (int i = 0; i < str.length(); i++) {
             metas.getData()[i] = str.substring(i, i + 1);
@@ -18,6 +19,10 @@ public class CharactMetadataPicker implements MetadataPicker {
     }
     public static void main(String[] args) {
 System.out.println("3333333");
+
+   new CharactMetadataPicker().     doPick("dasfasdfasdf");
+
+
     }
 }
 
